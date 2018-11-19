@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "outDir": "./temporary/",
+    "lib": [
+      "dom",
+      "es2015"
+    ],
+    "sourceMap": true,
+    "strict": true,
+    "noImplicitReturns": true,
+    "experimentalDecorators": true,
+    "module": "es2015",
+    "moduleResolution": "node",
+		"allowSyntheticDefaultImports": true,
+    "target": "es5",
+    "baseUrl": "./",
+		"typeRoots": ["types"],
+		"resolveJsonModule": true,
+    "paths": {
+			"*": [
+				"types/*"
+			],
+      "@": ["src"]
+    }
+  },
+  "include": [
+    "./src/**/*"
+  ]
+}
