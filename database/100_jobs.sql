@@ -24,7 +24,7 @@ CREATE TABLE app_jobs.job_queues (
 ALTER TABLE app_jobs.job_queues ENABLE ROW LEVEL SECURITY;
 
 CREATE TABLE app_jobs.jobs (
-  id serial PRIMARY KEY,
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v1mc(),
   queue_name varchar DEFAULT (public.gen_random_uuid())::varchar NOT NULL,
   task_identifier varchar NOT NULL,
   payload json DEFAULT '{}'::json NOT NULL,
@@ -99,7 +99,7 @@ CREATE FUNCTION app_jobs.schedule_job(identifier varchar, queue_name varchar, pa
   INSERT INTO app_jobs.jobs(task_identifier, queue_name, payload, run_at) VALUES(identifier, queue_name, payload, run_at) RETURNING *;
 $$ LANGUAGE sql;
 
-CREATE FUNCTION app_jobs.complete_job(worker_id varchar, job_id int) RETURNS app_jobs.jobs AS $$
+CREATE FUNCTION app_jobs.complete_job(worker_id varchar, job_id uuid) RETURNS app_jobs.jobs AS $$
 DECLARE
   v_row app_jobs.jobs;
 BEGIN
@@ -115,7 +115,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE FUNCTION app_jobs.fail_job(worker_id varchar, job_id int, error_message varchar) RETURNS app_jobs.jobs AS $$
+CREATE FUNCTION app_jobs.fail_job(worker_id varchar, job_id uuid, error_message varchar) RETURNS app_jobs.jobs AS $$
 DECLARE
   v_row app_jobs.jobs;
 BEGIN
@@ -136,7 +136,7 @@ $$ LANGUAGE plpgsql;
 
 CREATE FUNCTION app_jobs.get_job(worker_id varchar, identifiers varchar[]) RETURNS app_jobs.jobs AS $$
 DECLARE
-  v_job_id int;
+  v_job_id uuid;
   v_queue_name varchar;
   v_default_job_expiry text = (4 * 60 * 60)::text;
   v_default_job_maximum_attempts text = '25';

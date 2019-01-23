@@ -1,14 +1,45 @@
 #!/usr/bin/env make
 
-.PHONY: all build start clean production start-dev dump-schema dump-graphql
+.PHONY: all build start clean production start-dev dump-schema dump-graphql setup dev
 
 export NODE_ENV=development
+
+# ---------------------------------------------------------------------------------------------------------------------
+# SETUP
+# ---------------------------------------------------------------------------------------------------------------------
+
+setup:
+	./bin/setup.sh
+
+# ---------------------------------------------------------------------------------------------------------------------
+# UTILS
+# ---------------------------------------------------------------------------------------------------------------------
 
 clean:
 	rm -rf dist
 
+env-to-list:
+	node bin/env-to-list.js
+
+# ---------------------------------------------------------------------------------------------------------------------
+# DEVELOPMENT
+# ---------------------------------------------------------------------------------------------------------------------
+
 build: clean
 	./node_modules/.bin/babel ./src -d ./dist --extensions ".ts" --source-maps
+
+start-dev:
+	./bin/start-dev.sh
+
+dev: build
+	make watch & make start-dev
+
+watch:
+	./node_modules/.bin/babel ./src -d ./dist --extensions ".ts" --source-maps --watch
+
+# ---------------------------------------------------------------------------------------------------------------------
+# PRODUCTION
+# ---------------------------------------------------------------------------------------------------------------------
 
 production: clean
 	./node_modules/.bin/babel ./src -d ./dist --extensions ".ts"
@@ -16,11 +47,22 @@ production: clean
 start: production
 	./bin/start.sh
 
-start-dev: build
-	./bin/start-dev.sh
+# ---------------------------------------------------------------------------------------------------------------------
+# DUMP
+# ---------------------------------------------------------------------------------------------------------------------
 
 dump-schema:
 	./bin/dump-schema.sh
 
 dump-graphql:
 	./bin/dump-graphql.sh
+
+# ---------------------------------------------------------------------------------------------------------------------
+# DOCKER
+# ---------------------------------------------------------------------------------------------------------------------
+
+build-image-db:
+	@docker build -t orange-db/node-11.2-alpine .
+
+start-docker-container: env-to-list
+	docker run -p 8765:8765 -it --rm --env-file=.env-list orange-db/node-11.2-alpine:latest make start

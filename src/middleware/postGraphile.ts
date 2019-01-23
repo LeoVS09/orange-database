@@ -10,6 +10,7 @@ const { connection, schema, options } = library
 export default function (app: Koa, { rootPgPool }: {rootPgPool: postgres.Pool}) {
   app.use((ctx, next) => {
     // PostGraphile deals with (req, res) but we want access to sessions from `pgSettings`, so we make the ctx available on req.
+		console.log('pg start')
 		// @ts-ignore
     ctx.req.ctx = ctx;
     return next();
@@ -34,8 +35,10 @@ export default function (app: Koa, { rootPgPool }: {rootPgPool: postgres.Pool}) 
       pgSettings(req) {
       	// @ts-ignore
       	const ctx: Koa.Context = req.ctx;
+
+      	console.log('pgSettings', ctx.state.user)
         return {
-          role: "graphiledemo_visitor",
+          role: "orange_visitor",
           "jwt.claims.user_id": ctx.state.user && ctx.state.user.id,
         };
       },
@@ -51,10 +54,12 @@ export default function (app: Koa, { rootPgPool }: {rootPgPool: postgres.Pool}) 
           rootPgPool,
 
           // Use this to tell Passport.js we're logged in
-          login: (user: any) =>
-            new Promise((resolve, reject) => {
+          login: (user: any) => {
+						console.log("pg login", user)
+						return new Promise((resolve, reject) => {
 							ctx.login(user, (err: any) => (err ? reject(err) : resolve()));
-            }),
+						})
+					},
         };
       },
     })

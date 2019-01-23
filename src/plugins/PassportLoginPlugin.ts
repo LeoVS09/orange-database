@@ -95,6 +95,7 @@ export default makeExtendSchemaPlugin(build => ({
       ) {
         const { username, password } = args.input;
         const { rootPgPool, login, pgClient } = context;
+        console.log("passport-plugin")
         try {
           // Call our login function to find out if the username/password combination exists
           const {
@@ -103,6 +104,8 @@ export default makeExtendSchemaPlugin(build => ({
             `select users.* from app_private.login($1, $2) users where users is not null`,
             [username, password]
           );
+
+					console.log("try login user", user)
 
           if (!user) {
             throw new Error("Login failed");
@@ -130,7 +133,7 @@ export default makeExtendSchemaPlugin(build => ({
             user: row,
           };
         } catch (e) {
-          console.error(e);
+          console.error("Login failed", e);
           // TODO: check that this is indeed why it failed
           throw new Error("Login failed: incorrect username/password");
         }

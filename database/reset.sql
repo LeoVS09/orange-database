@@ -30,6 +30,8 @@ drop schema if exists app_jobs cascade;
 -- in your application, and dealing with concerns such as a welcome
 -- email or customising the user tables to your whim
 
+\ir 600_profiles.sql
+
 -- Forum tables
 \ir 700_forum.sql
 

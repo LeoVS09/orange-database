@@ -46,6 +46,7 @@ export default function (app: Koa, { rootPgPool }: {rootPgPool: postgres.Pool })
   passport.deserializeUser(async (id, callback) => {
     let error = null;
     let user;
+    console.log("deserializeUser", id)
     try {
       const {
         rows: [_user],

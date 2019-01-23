@@ -1,5 +1,7 @@
-create function app_public.current_user_id() returns int as $$
-  select nullif(current_setting('jwt.claims.user_id', true), '')::int;
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
+
+create function app_public.current_user_id() returns uuid as $$
+  select nullif(current_setting('jwt.claims.user_id', true), '')::uuid;
 $$ language sql stable set search_path from current;
 comment on function  app_public.current_user_id() is
   E'@omit\nHandy method to get the current user ID for use in RLS policies, etc; in GraphQL, use `currentUser{id}` instead.';
@@ -7,7 +9,7 @@ comment on function  app_public.current_user_id() is
 --------------------------------------------------------------------------------
 
 create table app_public.users (
-  id serial primary key,
+  id uuid primary key default uuid_generate_v1mc(),
   username citext not null unique check(username ~ '^[a-zA-Z]([a-zA-Z0-9][_]?)+$'),
   name text,
   avatar_url text check(avatar_url ~ '^https?://[^/]+'),
@@ -43,9 +45,9 @@ comment on column app_public.users.is_admin is
 create policy select_all on app_public.users for select using (true);
 create policy update_self on app_public.users for update using (id = app_public.current_user_id());
 create policy delete_self on app_public.users for delete using (id = app_public.current_user_id());
-grant select on app_public.users to graphiledemo_visitor;
-grant update(name, avatar_url) on app_public.users to graphiledemo_visitor;
-grant delete on app_public.users to graphiledemo_visitor;
+grant select on app_public.users to orange_visitor;
+grant update(name, avatar_url) on app_public.users to orange_visitor;
+grant delete on app_public.users to orange_visitor;
 
 create function app_private.tg_users__make_first_user_admin() returns trigger as $$
 begin
@@ -80,7 +82,7 @@ $$ language sql stable set search_path from current;
 --------------------------------------------------------------------------------
 
 create table app_private.user_secrets (
-  user_id int not null primary key references app_public.users,
+  user_id uuid not null primary key references app_public.users,
   password_hash text,
   password_attempts int not null default 0,
   first_failed_password_attempt timestamptz,
@@ -110,8 +112,8 @@ comment on function app_private.tg_user_secrets__insert_with_user() is
 --------------------------------------------------------------------------------
 
 create table app_public.user_emails (
-  id serial primary key,
-  user_id int not null default app_public.current_user_id() references app_public.users on delete cascade,
+  id uuid primary key default uuid_generate_v1mc(),
+  user_id uuid not null default app_public.current_user_id() references app_public.users on delete cascade,
   email citext not null check (email ~ '[^@]+@[^@]+\.[^@]+'),
   is_verified boolean not null default false,
   created_at timestamptz not null default now(),
@@ -143,14 +145,14 @@ comment on column app_public.user_emails.is_verified is
 create policy select_own on app_public.user_emails for select using (user_id = app_public.current_user_id());
 create policy insert_own on app_public.user_emails for insert with check (user_id = app_public.current_user_id());
 create policy delete_own on app_public.user_emails for delete using (user_id = app_public.current_user_id()); -- TODO check this isn't the last one!
-grant select on app_public.user_emails to graphiledemo_visitor;
-grant insert (email) on app_public.user_emails to graphiledemo_visitor;
-grant delete on app_public.user_emails to graphiledemo_visitor;
+grant select on app_public.user_emails to orange_visitor;
+grant insert (email) on app_public.user_emails to orange_visitor;
+grant delete on app_public.user_emails to orange_visitor;
 
 --------------------------------------------------------------------------------
 
 create table app_private.user_email_secrets (
-  user_email_id int primary key references app_public.user_emails on delete cascade,
+  user_email_id uuid primary key references app_public.user_emails on delete cascade,
   verification_token text,
   password_reset_email_sent_at timestamptz
 );
@@ -182,8 +184,8 @@ comment on function app_private.tg_user_email_secrets__insert_with_user_email() 
 --------------------------------------------------------------------------------
 
 create table app_public.user_authentications (
-  id serial primary key,
-  user_id int not null references app_public.users on delete cascade,
+  id uuid primary key default uuid_generate_v1mc(),
+  user_id uuid not null references app_public.users on delete cascade,
   service text not null,
   identifier text not null,
   details jsonb not null default '{}'::jsonb,
@@ -210,13 +212,13 @@ comment on column app_public.user_authentications.details is
 
 create policy select_own on app_public.user_authentications for select using (user_id = app_public.current_user_id());
 create policy delete_own on app_public.user_authentications for delete using (user_id = app_public.current_user_id()); -- TODO check this isn't the last one, or that they have a verified email address
-grant select on app_public.user_authentications to graphiledemo_visitor;
-grant delete on app_public.user_authentications to graphiledemo_visitor;
+grant select on app_public.user_authentications to orange_visitor;
+grant delete on app_public.user_authentications to orange_visitor;
 
 --------------------------------------------------------------------------------
 
 create table app_private.user_authentication_secrets (
-  user_authentication_id int not null primary key references app_public.user_authentications on delete cascade,
+  user_authentication_id uuid not null primary key references app_public.user_authentications on delete cascade,
   details jsonb not null default '{}'::jsonb
 );
 alter table app_private.user_authentication_secrets enable row level security;
@@ -356,7 +358,7 @@ comment on function app_private.login(username text, password text) is
 
 --------------------------------------------------------------------------------
 
-create function app_public.reset_password(user_id int, reset_token text, new_password text) returns app_public.users as $$
+create function app_public.reset_password(user_id uuid, reset_token text, new_password text) returns app_public.users as $$
 declare
   v_user app_public.users;
   v_user_secret app_private.user_secrets;
@@ -412,13 +414,21 @@ begin
 end;
 $$ language plpgsql strict volatile security definer set search_path from current;
 
-comment on function app_public.reset_password(user_id int, reset_token text, new_password text) is
+comment on function app_public.reset_password(user_id uuid, reset_token text, new_password text) is
   E'After triggering forgotPassword, you''ll be sent a reset token. Combine this with your user ID and a new password to reset your password.';
 
 --------------------------------------------------------------------------------
 
 
-create function app_private.really_create_user(username text, email text, email_is_verified bool, name text, avatar_url text, password text default null) returns app_public.users as $$
+create function app_private.really_create_user(
+	username text,
+	email text,
+	email_is_verified bool,
+	name text,
+	avatar_url text,
+	password text default null,
+	is_admin boolean default false
+) returns app_public.users as $$
 declare
   v_user app_public.users;
   v_username text = username;
@@ -451,8 +461,8 @@ begin
   limit 1;
 
   -- Insert the new user
-  insert into app_public.users (username, name, avatar_url) values
-    (v_username, name, avatar_url)
+  insert into app_public.users (username, name, avatar_url, is_admin) values
+    (v_username, name, avatar_url, is_admin)
     returning * into v_user;
 
 	-- Add the user's email
@@ -472,7 +482,7 @@ begin
 end;
 $$ language plpgsql volatile set search_path from current;
 
-comment on function app_private.really_create_user(username text, email text, email_is_verified bool, name text, avatar_url text, password text) is
+comment on function app_private.really_create_user(username text, email text, email_is_verified bool, name text, avatar_url text, password text, is_admin boolean) is
   E'Creates a user account. All arguments are optional, it trusts the calling method to perform sanitisation.';
 
 --------------------------------------------------------------------------------
@@ -484,7 +494,7 @@ declare
   v_name text;
   v_username text;
   v_avatar_url text;
-  v_user_authentication_id int;
+  v_user_authentication_id uuid;
 begin
   -- Extract data from the user’s OAuth profile data.
   v_email := f_profile ->> 'email';
@@ -517,15 +527,15 @@ comment on function app_private.register_user(f_service character varying, f_ide
 --------------------------------------------------------------------------------
 
 create function app_private.link_or_register_user(
-  f_user_id integer,
+  f_user_id uuid,
   f_service character varying,
   f_identifier character varying,
   f_profile json,
   f_auth_details json
 ) returns app_public.users as $$
 declare
-  v_matched_user_id int;
-  v_matched_authentication_id int;
+  v_matched_user_id uuid;
+  v_matched_authentication_id uuid;
   v_email citext;
   v_name text;
   v_avatar_url text;
@@ -597,6 +607,6 @@ begin
 end;
 $$ language plpgsql volatile security definer set search_path from current;
 
-comment on function app_private.link_or_register_user(f_user_id integer, f_service character varying, f_identifier character varying, f_profile json, f_auth_details json) is
+comment on function app_private.link_or_register_user(f_user_id uuid, f_service character varying, f_identifier character varying, f_profile json, f_auth_details json) is
   E'If you''re logged in, this will link an additional OAuth login to your account if necessary. If you''re logged out it may find if an account already exists (based on OAuth details or email address) and return that, or create a new user account if necessary.';
 
