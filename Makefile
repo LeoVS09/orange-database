@@ -8,7 +8,7 @@ export NODE_ENV=development
 # CONFIG
 # ---------------------------------------------------------------------------------------------------------------------
 DOCKER_IMAGE_VERSION=0.1.0
-DOCKER_IMAGE_TAG=orange-database/$(DOCKER_IMAGE_VERSION)
+DOCKER_IMAGE_TAG=leovs09/orange-database:$(DOCKER_IMAGE_VERSION)
 
 # ---------------------------------------------------------------------------------------------------------------------
 # SETUP
@@ -66,6 +66,12 @@ dump-graphql:
 # ---------------------------------------------------------------------------------------------------------------------
 # DOCKER
 # ---------------------------------------------------------------------------------------------------------------------
+
+docker-build-and-push:
+	echo "Build and pull $(DOCKER_IMAGE_TAG)"
+	docker build -t orange-database .
+	docker tag orange-database $(DOCKER_IMAGE_TAG)
+	docker push $(DOCKER_IMAGE_TAG)
 
 docker-build:
 	@docker build -t $(DOCKER_IMAGE_TAG) .
