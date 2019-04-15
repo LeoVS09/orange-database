@@ -1,4 +1,4 @@
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
+create extension if not exists "uuid-ossp" with schema public;
 
 create function app_public.current_user_id() returns uuid as $$
   select nullif(current_setting('jwt.claims.user_id', true), '')::uuid;

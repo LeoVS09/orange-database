@@ -1,17 +1,28 @@
-FROM node:11.2-alpine
+FROM node:11.14-stretch as base
 
-WORKDIR /app
+RUN apt update && apt upgrade -y && \
+   apt install -y bash bash-completion make curl wget
 
-COPY . /app
+RUN wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - && \
+   echo "deb http://apt.postgresql.org/pub/repos/apt/ stretch"-pgdg main | tee  /etc/apt/sources.list.d/pgdg.list && \
+   apt update && \
+   apt -y install postgresql-11
 
-RUN apk add --update --no-cache bash bash-completion make git
+RUN npm i -g npx
 
-RUN npm i -g yarn
+WORKDIR /ws
 
-RUN yarn install
+COPY package.json yarn.lock /ws/
+RUN yarn
 
-ENTRYPOINT ["/bin/bash", "docker-entrypoint.sh"]
+FROM base
 
-CMD ["make start"]
+COPY . /ws
+
+RUN yarn build
+
+ENTRYPOINT ["./docker-entrypoint.sh"]
+
+CMD ["./bin/start.sh"]
 
 EXPOSE 8765

@@ -37,11 +37,15 @@ export SECRET="$(openssl rand -base64 48)"
 export JWT_SECRET="$(openssl rand -base64 48)"
 
 
+# Used by psql tool for default connect to database
+export PGHOST="db"
+export PGUSER="postgres"
+
 # These are the connection strings for the DB and the test DB.
-export ROOT_DATABASE_URL="postgresql://orange:\$SUPERUSER_PASSWORD@localhost/orange"
-export AUTH_DATABASE_URL="postgresql://orange_authenticator:\$AUTH_USER_PASSWORD@localhost/orange"
-export TEST_ROOT_DATABASE_URL="postgresql://orange:\$SUPERUSER_PASSWORD@localhost/orange_test"
-export TEST_AUTH_DATABASE_URL="postgresql://orange_authenticator:\$AUTH_USER_PASSWORD@localhost/orange_test"
+export ROOT_DATABASE_URL="postgresql://orange:\$SUPERUSER_PASSWORD@\$PGHOST/orange"
+export AUTH_DATABASE_URL="postgresql://orange_authenticator:\$AUTH_USER_PASSWORD@\$PGHOST/orange"
+export TEST_ROOT_DATABASE_URL="postgresql://orange:\$SUPERUSER_PASSWORD@\$PGHOST/orange_test"
+export TEST_AUTH_DATABASE_URL="postgresql://orange_authenticator:\$AUTH_USER_PASSWORD@\$PGHOST/orange_test"
 
 # This port is the one you'll connect to
 export PORT=8765

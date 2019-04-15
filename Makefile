@@ -1,8 +1,14 @@
 #!/usr/bin/env make
 
-.PHONY: all build start clean production start-dev dump-schema dump-graphql setup dev
+.PHONY: all build start clean production start-dev dump-schema dump-graphql setup dev docker-build docker-console build-console
 
 export NODE_ENV=development
+
+# ---------------------------------------------------------------------------------------------------------------------
+# CONFIG
+# ---------------------------------------------------------------------------------------------------------------------
+DOCKER_IMAGE_VERSION=0.1.0
+DOCKER_IMAGE_TAG=orange-database/$(DOCKER_IMAGE_VERSION)
 
 # ---------------------------------------------------------------------------------------------------------------------
 # SETUP
@@ -26,7 +32,7 @@ env-to-list:
 # ---------------------------------------------------------------------------------------------------------------------
 
 build: clean
-	./node_modules/.bin/babel ./src -d ./dist --extensions ".ts" --source-maps
+	yarn build
 
 start-dev:
 	./bin/start-dev.sh
@@ -35,7 +41,7 @@ dev: build
 	make watch & make start-dev
 
 watch:
-	./node_modules/.bin/babel ./src -d ./dist --extensions ".ts" --source-maps --watch
+	yarn watch
 
 # ---------------------------------------------------------------------------------------------------------------------
 # PRODUCTION
@@ -61,8 +67,16 @@ dump-graphql:
 # DOCKER
 # ---------------------------------------------------------------------------------------------------------------------
 
-build-image-db:
-	@docker build -t orange-db/node-11.2-alpine .
+docker-build:
+	@docker build -t $(DOCKER_IMAGE_TAG) .
 
-start-docker-container: env-to-list
-	docker run -p 8765:8765 -it --rm --env-file=.env-list orange-db/node-11.2-alpine:latest make start
+docker-console: env-to-list
+	docker-compose run --publish=8765:8765 orange-database  /bin/bash
+
+build-console: docker-build docker-console
+
+db-up:
+	docker-compose up db
+
+docker-up:
+	docker-compose up

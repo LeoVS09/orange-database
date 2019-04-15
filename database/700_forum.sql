@@ -1,5 +1,5 @@
 -- Forum example
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
+create extension if not exists "uuid-ossp" with schema public;
 
 create table app_public.forums (
   id serial primary key,
