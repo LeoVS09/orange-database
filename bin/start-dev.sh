@@ -6,4 +6,6 @@ fi;
 
 export NODE_ENV=development
 
-./node_modules/.bin/nodemon ./dist/index.js
+echo "start development"
+
+yarn nodemon:start

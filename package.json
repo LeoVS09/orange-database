@@ -5,7 +5,9 @@
    "main": "index.js",
    "scripts": {
       "build": "babel ./src -d ./dist --extensions \".ts\" --source-maps",
-      "watch": "babel ./src -d ./dist --extensions \".ts\" --source-maps --watch"
+      "production": "babel ./src -d ./dist --extensions \".ts\"",
+      "watch": "babel ./src -d ./dist --extensions \".ts\" --source-maps --watch",
+      "nodemon:start": "nodemon ./dist/index.js"
    },
    "repository": {
       "type": "git",
