@@ -1,5 +1,3 @@
-# TODO: rewrite
-
 # Database
 
 Note also that this application works with both social (OAuth) login (when used
@@ -9,6 +7,10 @@ may use them (e.g. to look up issues in GitHub when they're mentioned in one of
 your posts). This means the user tables might be significantly more complex
 than your application requires; feel free to simplify them when you build your
 own schema.
+
+### Example
+If you new in PostgreSQL, you can start from `forum_example.sql`. Example have base
+samples of forum tables
 
 ### Conventions
 
@@ -39,9 +41,7 @@ and adds base permissions to them.
 
 Definitions >= 500 are application specific, defining the tables in your
 application, and dealing with concerns such as a welcome email or customising
-the user tables to your whim. We use them here to add our forum-specific logic.
-
-`700_forum.sql`
+the user tables to your whim. We use them here to add our application-specific logic.
 
 ### Migrations
 

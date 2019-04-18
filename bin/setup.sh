@@ -133,6 +133,7 @@ REVOKE ALL ON DATABASE orange_test FROM PUBLIC;
 GRANT CONNECT ON DATABASE orange_test TO orange;
 GRANT CONNECT ON DATABASE orange_test TO orange_authenticator;
 GRANT ALL ON DATABASE orange_test TO orange;
+
 \\connect orange_test
 CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;

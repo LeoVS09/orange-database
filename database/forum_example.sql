@@ -1,4 +1,7 @@
--- Forum example
+-- Simple forum example
+-- Not needed for current application,
+-- but left here because can be used as postgresql syntax starting point for new developers
+
 create extension if not exists "uuid-ossp" with schema public;
 
 create table app_public.forums (

@@ -24,15 +24,36 @@ drop schema if exists app_jobs cascade;
 -- Users, authentication, emails, etc
 \ir 400_users.sql
 
+-- Localisation data, languages of applications
+\ir 450_languages.sql
+
 --------------------------------------------------------------------------------
 
 -- Definitions >=500 are application specific, defining the tables
 -- in your application, and dealing with concerns such as a welcome
 -- email or customising the user tables to your whim
 
-\ir 600_profiles.sql
+-- Countries, cities, travels
+\ir 500_geo.sql
 
--- Forum tables
-\ir 700_forum.sql
+-- User profiles, teachers, contestant
+\ir 550_profiles.sql
 
+-- Data domain
+\ir 551_programming_languages.sql
+\ir 552_code_editors.sql
+\ir 553_compilers_and_interpreters.sql
+
+-- Contest tasks, tags...
+\ir 600_problems.sql
+
+-- Teams of contestants
+\ir 700_teams.sql
+
+-- Contests
+\ir 800_contests.sql
+
+--------------------------------------------------------------------------------
+
+-- Initial data
 \ir 999_data.sql

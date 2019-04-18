@@ -6,7 +6,7 @@ $$ language sql stable set search_path from current;
 comment on function  app_public.current_user_id() is
   E'@omit\nHandy method to get the current user ID for use in RLS policies, etc; in GraphQL, use `currentUser{id}` instead.';
 
---------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
 
 create table app_public.users (
   id uuid primary key default uuid_generate_v1mc(),
@@ -62,7 +62,7 @@ create trigger _200_make_first_user_admin
   for each row
   execute procedure app_private.tg_users__make_first_user_admin();
 
---------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
 
 create function app_public.current_user_is_admin() returns bool as $$
   -- We're using exists here because it guarantees true/false rather than true/false/null
@@ -73,13 +73,13 @@ $$ language sql stable set search_path from current;
 comment on function  app_public.current_user_is_admin() is
   E'@omit\nHandy method to determine if the current user is an admin, for use in RLS policies, etc; in GraphQL should use `currentUser{isAdmin}` instead.';
 
---------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
 
 create function app_public.current_user() returns app_public.users as $$
   select users.* from app_public.users where id = app_public.current_user_id();
 $$ language sql stable set search_path from current;
 
---------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
 
 create table app_private.user_secrets (
   user_id uuid not null primary key references app_public.users,
@@ -109,7 +109,7 @@ create trigger _500_insert_secrets
 comment on function app_private.tg_user_secrets__insert_with_user() is
   E'Ensures that every user record has an associated user_secret record.';
 
---------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
 
 create table app_public.user_emails (
   id uuid primary key default uuid_generate_v1mc(),
@@ -149,7 +149,7 @@ grant select on app_public.user_emails to orange_visitor;
 grant insert (email) on app_public.user_emails to orange_visitor;
 grant delete on app_public.user_emails to orange_visitor;
 
---------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
 
 create table app_private.user_email_secrets (
   user_email_id uuid primary key references app_public.user_emails on delete cascade,
@@ -181,7 +181,7 @@ create trigger _500_insert_secrets
 comment on function app_private.tg_user_email_secrets__insert_with_user_email() is
   E'Ensures that every user_email record has an associated user_email_secret record.';
 
---------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
 
 create table app_public.user_authentications (
   id uuid primary key default uuid_generate_v1mc(),
@@ -215,7 +215,7 @@ create policy delete_own on app_public.user_authentications for delete using (us
 grant select on app_public.user_authentications to orange_visitor;
 grant delete on app_public.user_authentications to orange_visitor;
 
---------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
 
 create table app_private.user_authentication_secrets (
   user_authentication_id uuid not null primary key references app_public.user_authentications on delete cascade,
@@ -226,7 +226,7 @@ alter table app_private.user_authentication_secrets enable row level security;
 -- NOTE: user_authentication_secrets doesn't need an auto-inserter as we handle
 -- that everywhere that can create a user_authentication row.
 
---------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
 
 create function app_public.forgot_password(email text) returns boolean as $$
 declare
@@ -290,7 +290,7 @@ $$ language plpgsql strict security definer volatile set search_path from curren
 comment on function app_public.forgot_password(email text) is
   E'@resultFieldName success\nIf you''ve forgotten your password, give us one of your email addresses and we'' send you a reset token. Note this only works if you have added an email address!';
 
---------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
 
 create function app_private.login(username text, password text) returns app_public.users as $$
 declare
@@ -356,7 +356,7 @@ $$ language plpgsql strict security definer volatile set search_path from curren
 comment on function app_private.login(username text, password text) is
   E'Returns a user that matches the username/password combo, or null on failure.';
 
---------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
 
 create function app_public.reset_password(user_id uuid, reset_token text, new_password text) returns app_public.users as $$
 declare
@@ -417,7 +417,7 @@ $$ language plpgsql strict volatile security definer set search_path from curren
 comment on function app_public.reset_password(user_id uuid, reset_token text, new_password text) is
   E'After triggering forgotPassword, you''ll be sent a reset token. Combine this with your user ID and a new password to reset your password.';
 
---------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
 
 
 create function app_private.really_create_user(
@@ -485,7 +485,7 @@ $$ language plpgsql volatile set search_path from current;
 comment on function app_private.really_create_user(username text, email text, email_is_verified bool, name text, avatar_url text, password text, is_admin boolean) is
   E'Creates a user account. All arguments are optional, it trusts the calling method to perform sanitisation.';
 
---------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
 
 create function app_private.register_user(f_service character varying, f_identifier character varying, f_profile json, f_auth_details json, f_email_is_verified boolean default false) returns app_public.users as $$
 declare
@@ -524,7 +524,7 @@ $$ language plpgsql volatile security definer set search_path from current;
 comment on function app_private.register_user(f_service character varying, f_identifier character varying, f_profile json, f_auth_details json, f_email_is_verified boolean) is
   E'Used to register a user from information gleaned from OAuth. Primarily used by link_or_register_user';
 
---------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
 
 create function app_private.link_or_register_user(
   f_user_id uuid,
