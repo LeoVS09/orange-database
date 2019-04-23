@@ -18,13 +18,18 @@ create table app_public.profiles (
 	city_id uuid default null references app_public.cities(id),
 	university_id uuid default null references app_public.universities(id),
 
-	created date not null default now(),
-	updated date default null,
+    is_teacher boolean default false,
 
-	is_teacher boolean default false
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now()
 );
 
 alter table app_public.profiles enable row level security;
+
+create trigger _100_timestamps
+  after insert or update on app_public.profiles
+  for each row
+  execute procedure app_private.tg__update_timestamps();
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -77,10 +82,19 @@ grant delete on app_public.profiles to orange_visitor;
 create table app_public.profiles_to_travels (
 	profile_id uuid not null references app_public.profiles(id),
 	travel_id uuid not null references app_public.travels(id),
+
+	created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now(),
+
 	primary key (profile_id, travel_id)
 );
 
 alter table app_public.profiles_to_travels enable row level security;
+
+create trigger _100_timestamps
+  after insert or update on app_public.profiles_to_travels
+  for each row
+  execute procedure app_private.tg__update_timestamps();
 
 ------------------------------------------------------------------------------------------------------------------------
 

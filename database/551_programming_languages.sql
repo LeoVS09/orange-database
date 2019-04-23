@@ -9,10 +9,19 @@ create table app_public.programming_languages(
 	name text not null check (char_length(name) < 30),
 	alias text default null check (char_length(alias) < 30),
 	version text not null unique check (char_length(version) < 30),
+
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now(),
+
 	unique (name, version)
 );
 
 alter table app_public.programming_languages enable row level security;
+
+create trigger _100_timestamps
+  after insert or update on app_public.programming_languages
+  for each row
+  execute procedure app_private.tg__update_timestamps();
 
 comment on table app_public.programming_languages is
     E'Programming language, each row define one version of some language';
@@ -45,10 +54,19 @@ grant delete       on app_public.programming_languages to orange_visitor;
 create table app_public.profiles_to_programming_languages(
 	profile_id uuid not null references app_public.profiles(id),
 	language_id uuid not null references app_public.programming_languages (id),
+
+	created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now(),
+
 	primary key (profile_id, language_id)
 );
 
 alter table app_public.profiles_to_programming_languages enable row level security;
+
+create trigger _100_timestamps
+  after insert or update on app_public.profiles_to_programming_languages
+  for each row
+  execute procedure app_private.tg__update_timestamps();
 
 ------------------------------------------------------------------------------------------------------------------------
 

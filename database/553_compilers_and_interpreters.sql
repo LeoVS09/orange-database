@@ -18,10 +18,18 @@ create table app_public.compilers (
     -- Secondly, using two tables for this types will require additional logic on client
 	is_interpreter boolean default false,
 
+	created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now(),
+
 	unique (name, version)
 );
 
 alter table app_public.compilers enable row level security;
+
+create trigger _100_timestamps
+  after insert or update on app_public.compilers
+  for each row
+  execute procedure app_private.tg__update_timestamps();
 
 comment on table app_public.compilers is
     E'Compilers for programming languages';

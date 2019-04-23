@@ -44,16 +44,12 @@ drop schema if exists app_jobs cascade;
 \ir 552_code_editors.sql
 \ir 553_compilers_and_interpreters.sql
 
--- Contest tasks, tags...
+-- Contest tasks, tags, tests...
 \ir 600_problems.sql
+\ir 650_solutions.sql
 
 -- Teams of contestants
 \ir 700_teams.sql
 
 -- Contests
 \ir 800_contests.sql
-
---------------------------------------------------------------------------------
-
--- Initial data
-\ir 999_data.sql

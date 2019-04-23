@@ -4,10 +4,18 @@ create extension if not exists "uuid-ossp";
 
 create table app_public.countries (
 	id uuid primary key default uuid_generate_v1mc(),
-  name text not null check (char_length(name) < 80)
+    name text not null check (char_length(name) < 80),
+
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now()
 );
 
 alter table app_public.countries enable row level security;
+
+create trigger _100_timestamps
+  after insert or update on app_public.countries
+  for each row
+  execute procedure app_private.tg__update_timestamps();
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -39,10 +47,18 @@ $$ language sql stable;
 create table app_public.cities (
 	id uuid primary key default uuid_generate_v1mc(),
 	name text not null check (char_length(name) < 80),
-    country_id uuid references app_public.countries(id) on delete cascade
+    country_id uuid references app_public.countries(id) on delete cascade,
+
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now()
 );
 
 alter table app_public.cities enable row level security;
+
+create trigger _100_timestamps
+  after insert or update on app_public.cities
+  for each row
+  execute procedure app_private.tg__update_timestamps();
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -66,10 +82,18 @@ create table app_public.universities (
 	city_id uuid references app_public.cities(id),
 
 	short_name text not null check (char_length(short_name) < 80),
-	long_name text check (char_length(long_name) < 300)
+	long_name text check (char_length(long_name) < 300),
+
+	created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now()
 );
 
 alter table app_public.universities enable row level security;
+
+create trigger _100_timestamps
+  after insert or update on app_public.universities
+  for each row
+  execute procedure app_private.tg__update_timestamps();
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -94,10 +118,18 @@ create table app_public.travels (
 	departure_time timestamptz default null,
 	departure_place timestamptz default null, -- coordinates of departure
 	is_need_housing boolean not null default false,
-    commentary text default null
+    commentary text default null,
+
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now()
 );
 
 alter table app_public.travels enable row level security;
+
+create trigger _100_timestamps
+  after insert or update on app_public.travels
+  for each row
+  execute procedure app_private.tg__update_timestamps();
 
 ------------------------------------------------------------------------------------------------------------------------
 

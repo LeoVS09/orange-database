@@ -5,11 +5,18 @@ create extension if not exists "uuid-ossp" with schema public;
 
 create table app_public.teams (
     id uuid primary key default uuid_generate_v1mc(),
-    name text not null check (char_length(name) < 80)
+    name text not null check (char_length(name) < 80),
+
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now()
 );
 
 alter table app_public.teams enable row level security;
 
+create trigger _100_timestamps
+  after insert or update on app_public.teams
+  for each row
+  execute procedure app_private.tg__update_timestamps();
 ------------------------------------------------------------------------------------------------------------------------
 
 create policy select_all on app_public.teams for select using (true);
@@ -29,10 +36,19 @@ grant delete on app_public.teams to orange_visitor;
 create table app_public.teams_to_profiles(
 	team_id uuid not null references app_public.teams(id),
 	profile_id uuid not null references app_public.profiles(id),
+
+	created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now(),
+
 	primary key (team_id, profile_id)
 );
 
 alter table app_public.teams_to_profiles enable row level security;
+
+create trigger _100_timestamps
+  after insert or update on app_public.teams_to_profiles
+  for each row
+  execute procedure app_private.tg__update_timestamps();
 
 ------------------------------------------------------------------------------------------------------------------------
 

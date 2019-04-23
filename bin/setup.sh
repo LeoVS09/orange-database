@@ -144,7 +144,7 @@ SQL
 echo "Roles and databases created, now sourcing the initial database schema"
 psql -X1 -v ON_ERROR_STOP=1 "${ROOT_DATABASE_URL}" -f database/reset.sql
 
-echo "Insert admin login: $ADMIN_LOGIN, email: $ADMIN_EMAIL, password: $ADMIN_PASSWORD"
+echo "Insert admin login: $ADMIN_LOGIN, email: $ADMIN_EMAIL, password: $ADMIN_PASSWORD, and create profile"
 psql -X -v ON_ERROR_STOP=1 "${ROOT_DATABASE_URL}"  template1 << SQL
 select app_private.really_create_user(
   '${ADMIN_LOGIN}',
@@ -156,6 +156,9 @@ select app_private.really_create_user(
   true
 );
 SQL
+
+echo "Set initial database data"
+psql -X1 -v ON_ERROR_STOP=1 "${ROOT_DATABASE_URL}" -f database/initial_data.sql
 
 ./bin/dump-schema.sh
 

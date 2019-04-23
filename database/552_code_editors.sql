@@ -6,13 +6,22 @@ create extension if not exists "uuid-ossp";
 
 create table app_public.code_editors (
 	id uuid primary key default uuid_generate_v1mc(),
-	name text not null check (char_length(name) < 30),
-	alias text default null check (char_length(alias) < 30),
-	version text not null unique check (char_length(name) < 10),
+	name text not null constraint name_less_50 check (char_length(name) < 50),
+	alias text default null constraint alias_less_50 check (char_length(alias) < 30),
+	version text not null unique constraint version_less_50 check (char_length(name) < 200),
+
+	created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now(),
+
 	unique (name, version)
 );
 
 alter table app_public.code_editors enable row level security;
+
+create trigger _100_timestamps
+  after insert or update on app_public.code_editors
+  for each row
+  execute procedure app_private.tg__update_timestamps();
 
 comment on table app_public.code_editors is
     E'Code editor, each row define one version of some code editor';
@@ -45,10 +54,19 @@ grant delete       on app_public.code_editors to orange_visitor;
 create table app_public.profiles_to_code_editors (
 	profile_id uuid not null references app_public.profiles(id),
 	code_editor_id uuid not null references app_public.code_editors(id),
+
+	created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now(),
+
 	primary key (profile_id, code_editor_id)
 );
 
 alter table app_public.profiles_to_code_editors enable row level security;
+
+create trigger _100_timestamps
+  after insert or update on app_public.profiles_to_code_editors
+  for each row
+  execute procedure app_private.tg__update_timestamps();
 
 ------------------------------------------------------------------------------------------------------------------------
 

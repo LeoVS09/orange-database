@@ -9,20 +9,25 @@ create table app_public.contests (
 
     creator uuid not null references app_public.users(id),
 
-    start_date date default null check ( start_date > now() ),
-    end_date date default null constraint is_start_date_defined check ( start_date is not null ),
+    start_date timestamptz default null check ( start_date > now() ),
+    end_date timestamptz default null constraint is_start_date_defined check ( start_date is not null ),
 
-    visible_start_date date default null,
-    visible_end_date date default null constraint is_visible_start_date_defined check ( visible_start_date is not null ),
+    start_publication_date timestamptz default null,
+    end_publication_date timestamptz default null constraint is_visible_start_date_defined check ( start_publication_date is not null ),
 
-    created date not null default now(),
-    updated date default null,
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now()
 
     constraint end_must_be_after_start check ( start_date < end_date ),
-    constraint visible_end_must_be_after_start check ( visible_start_date < visible_end_date )
+    constraint visible_end_must_be_after_start check ( start_publication_date < end_publication_date )
 );
 
 alter table app_public.contests enable row level security;
+
+create trigger _100_timestamps
+  after insert or update on app_public.contests
+  for each row
+  execute procedure app_private.tg__update_timestamps();
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -40,10 +45,8 @@ grant insert(
     creator,
     start_date,
     end_date,
-    visible_start_date,
-    visible_end_date,
-    created,
-    updated
+    start_publication_date,
+    end_publication_date
 ) on app_public.contests to orange_visitor;
 grant update(
     name,
@@ -51,10 +54,8 @@ grant update(
     creator,
     start_date,
     end_date,
-    visible_start_date,
-    visible_end_date,
-    created,
-    updated
+    start_publication_date,
+    end_publication_date
 ) on app_public.contests to orange_visitor;
 grant delete on app_public.contests to orange_visitor;
 
@@ -63,10 +64,19 @@ grant delete on app_public.contests to orange_visitor;
 create table app_public.contests_to_teams(
 	contest_id uuid not null references app_public.contests(id),
 	team_id uuid not null references app_public.teams(id),
+
+	created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now(),
+
 	primary key (contest_id, team_id)
 );
 
 alter table app_public.contests_to_teams enable row level security;
+
+create trigger _100_timestamps
+  after insert or update on app_public.contests_to_teams
+  for each row
+  execute procedure app_private.tg__update_timestamps();
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -86,10 +96,19 @@ grant delete       on app_public.contests_to_teams to orange_visitor;
 create table app_public.contests_to_profiles(
 	contest_id uuid not null references app_public.contests(id),
 	profile_id uuid not null references app_public.profiles(id),
+
+	created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now(),
+
 	primary key (contest_id, profile_id)
 );
 
 alter table app_public.contests_to_profiles enable row level security;
+
+create trigger _100_timestamps
+  after insert or update on app_public.contests_to_profiles
+  for each row
+  execute procedure app_private.tg__update_timestamps();
 
 ------------------------------------------------------------------------------------------------------------------------
 
