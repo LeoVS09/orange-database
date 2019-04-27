@@ -51,7 +51,7 @@ grant delete       on app_public.code_editors to orange_visitor;
 
 -- ////////////////////////////////////////////// PROFILES TO CODE EDITORS /////////////////////////////////////////////
 
-create table app_public.profiles_to_code_editors (
+create table app_public.profiles_code_editors (
 	profile_id uuid not null references app_public.profiles(id),
 	code_editor_id uuid not null references app_public.code_editors(id),
 
@@ -61,37 +61,24 @@ create table app_public.profiles_to_code_editors (
 	primary key (profile_id, code_editor_id)
 );
 
-alter table app_public.profiles_to_code_editors enable row level security;
+alter table app_public.profiles_code_editors enable row level security;
 
 create trigger _100_timestamps
-  after insert or update on app_public.profiles_to_code_editors
+  after insert or update on app_public.profiles_code_editors
   for each row
   execute procedure app_private.tg__update_timestamps();
 
 ------------------------------------------------------------------------------------------------------------------------
 
-create policy select_all   on app_public.profiles_to_code_editors for select using (true);
-create policy insert_admin on app_public.profiles_to_code_editors for insert with check (app_public.current_user_is_admin());
-create policy update_admin on app_public.profiles_to_code_editors for update using (app_public.current_user_is_admin());
-create policy delete_admin on app_public.profiles_to_code_editors for delete using (app_public.current_user_is_admin());
+create policy select_all   on app_public.profiles_code_editors for select using (true);
+create policy insert_admin on app_public.profiles_code_editors for insert with check (app_public.current_user_is_admin());
+create policy update_admin on app_public.profiles_code_editors for update using (app_public.current_user_is_admin());
+create policy delete_admin on app_public.profiles_code_editors for delete using (app_public.current_user_is_admin());
 
 ------------------------------------------------------------------------------------------------------------------------
 
-grant select       on app_public.profiles_to_code_editors to orange_visitor;
-grant insert(profile_id, code_editor_id) on app_public.profiles_to_code_editors to orange_visitor;
-grant delete       on app_public.profiles_to_code_editors to orange_visitor;
-
-------------------------------------------------------------------------------------------------------------------------
-
-create function app_public.profile_code_editors(p app_public.profiles)
-returns setof app_public.code_editors as $$
-
-	select app_public.code_editors.*
-	from app_public.code_editors
-	inner join app_public.profiles_to_code_editors
-	on (app_public.profiles_to_code_editors.code_editor_id = app_public.code_editors.id)
-	where app_public.profiles_to_code_editors.profile_id = p.id;
-
-$$ language sql stable;
+grant select       on app_public.profiles_code_editors to orange_visitor;
+grant insert(profile_id, code_editor_id) on app_public.profiles_code_editors to orange_visitor;
+grant delete       on app_public.profiles_code_editors to orange_visitor;
 
 ------------------------------------------------------------------------------------------------------------------------

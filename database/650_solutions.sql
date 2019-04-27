@@ -49,6 +49,7 @@ grant delete on app_public.solution to orange_visitor;
 create table app_public.fail_types (
     id uuid primary key default uuid_generate_v1mc(),
     name text not null,
+    code int not null constraint file_type_code_must_be_unique unique,
 
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now()

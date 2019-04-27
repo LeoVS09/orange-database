@@ -749,10 +749,10 @@
     lodash "^4.17.11"
     to-fast-properties "^2.0.0"
 
-"@graphile-contrib/pg-simplify-inflector@2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@graphile-contrib/pg-simplify-inflector/-/pg-simplify-inflector-2.0.0.tgz#03d7c81a492160ec0d1c92c1a01468c12d3cb880"
-  integrity sha512-sHkuYZjNpDM0kBfADeu2MwYwYxwn/Nk5Ip3Se0u0odw2YwOsvWi/q8/fqPNJ+iCRFkdPd+vUupyuJFipfVN2hg==
+"@graphile-contrib/pg-simplify-inflector@^5.0.0-beta.1":
+  version "5.0.0-beta.1"
+  resolved "https://registry.yarnpkg.com/@graphile-contrib/pg-simplify-inflector/-/pg-simplify-inflector-5.0.0-beta.1.tgz#f7e890566d33e8ee6796dab5ec75ff9bca040701"
+  integrity sha512-oE1znqxBgGl6WK7t8sO4okQEqlP+GZ7ZYT4m2EB38GGbT3YuzjHTI8TcxJtDZsLPG3kPvZvB4Uc34Kb0/NGUVQ==
 
 "@koa/cors@2.2.2":
   version "2.2.2"
@@ -2047,7 +2047,7 @@ graceful-fs@^4.1.11, graceful-fs@^4.1.2:
   resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.1.15.tgz#ffb703e1066e8a0eeaa4c8b80ba9253eeefbfb00"
   integrity sha512-6uHUhOPEBgQ24HM+r6b/QwWfZq+yiFcipKFrOFiBEnWdy5sdzYoi+pJeQaPI5qOLRFqWmAXUPQNsielzdLoecA==
 
-graphile-build-pg@4.3.1:
+graphile-build-pg@4.3.1, graphile-build-pg@^4.3.1:
   version "4.3.1"
   resolved "https://registry.yarnpkg.com/graphile-build-pg/-/graphile-build-pg-4.3.1.tgz#ef9e8f3d7f1ae81dd96b318c267096498cde9729"
   integrity sha512-2Sr34q0Q2h3E0JzQjLI3lYVWfDxoGsZzfw6zpwTkkTovm/5trNPhVOjut/d/ath7eIYWcDHQ70OO97TifLjyDA==
@@ -2076,7 +2076,7 @@ graphile-build@4.3.1:
     pluralize "^7.0.0"
     semver "^5.6.0"
 
-graphile-utils@^4.0.1:
+graphile-utils@^4.3.1:
   version "4.3.1"
   resolved "https://registry.yarnpkg.com/graphile-utils/-/graphile-utils-4.3.1.tgz#4533f96120e2e1ba30c2e69e413d99c78c785fe6"
   integrity sha512-hQ2exfm386KTNGO9LMP/c/RLKyTTmN/wnExyx/faZgfTQT2KJNGSAlKaR/gSeetY/u6ku1ztKFx2IN4b5IWh6w==
@@ -2097,7 +2097,7 @@ graphql-parse-resolve-info@4.1.0:
     "@types/graphql" "^14.0.3"
     debug ">=2 <3"
 
-"graphql@>=0.9 <0.14 || ^14.0.2", "graphql@^0.6.0 || ^0.7.0 || ^0.8.0-b || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.2":
+"graphql@>=0.9 <0.14 || ^14.0.2", "graphql@^0.6.0 || ^0.7.0 || ^0.8.0-b || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.2", graphql@^14.2.1:
   version "14.2.1"
   resolved "https://registry.yarnpkg.com/graphql/-/graphql-14.2.1.tgz#779529bf9a01e7207b977a54c20670b48ca6e95c"
   integrity sha512-2PL1UbvKeSjy/lUeJqHk+eR9CvuErXoCNwJI4jm3oNFEeY+9ELqHNKO1ZuSxAkasPkpWbmT/iMRMFxd3cEL3tQ==
@@ -2785,7 +2785,7 @@ koa-unless@1.0.7:
   resolved "https://registry.yarnpkg.com/koa-unless/-/koa-unless-1.0.7.tgz#b9df375e2b4da3043918d48622520c2c0b79f032"
   integrity sha1-ud83XitNowQ5GNSGIlIMLAt58DI=
 
-koa@^2.6.2:
+koa@^2.7.0:
   version "2.7.0"
   resolved "https://registry.yarnpkg.com/koa/-/koa-2.7.0.tgz#7e00843506942b9d82c6cc33749f657c6e5e7adf"
   integrity sha512-7ojD05s2Q+hFudF8tDLZ1CpCdVZw8JQELWSkcfG9bdtoTDzMmkRF6BQBU7JzIzCCOY3xd3tftiy/loHBUYaY2Q==
@@ -3505,10 +3505,23 @@ pg-types@~2.0.0:
     postgres-date "~1.0.4"
     postgres-interval "^1.1.0"
 
-"pg@>=6.1.0 <8", pg@^7.6.1:
+"pg@>=6.1.0 <8":
   version "7.9.0"
   resolved "https://registry.yarnpkg.com/pg/-/pg-7.9.0.tgz#04f0024d810544463f47dbb5aada2486aa7dcc36"
   integrity sha512-GkzteBFpsIoIBCSuomqik3IGvhqAtTr32jclR24RmUg170Jrn6ypwR97YalFHrsE1iaW8T0aAH13dmij8QUQ0g==
+  dependencies:
+    buffer-writer "2.0.0"
+    packet-reader "1.0.0"
+    pg-connection-string "0.1.3"
+    pg-pool "^2.0.4"
+    pg-types "~2.0.0"
+    pgpass "1.x"
+    semver "4.3.2"
+
+pg@^7.10.0:
+  version "7.10.0"
+  resolved "https://registry.yarnpkg.com/pg/-/pg-7.10.0.tgz#2a359ee29ed1971344ac7f44317a9d1bcd80a8ff"
+  integrity sha512-aE6FZomsyn3OeGv1oM50v7Xu5zR75c15LXdOCwA9GGrfjXsQjzwYpbcTS6OwEMhYfZQS6m/FVU/ilPLiPzJDCw==
   dependencies:
     buffer-writer "2.0.0"
     packet-reader "1.0.0"
@@ -3573,7 +3586,7 @@ postgraphile-core@4.3.1:
     graphile-build "4.3.1"
     graphile-build-pg "4.3.1"
 
-postgraphile@^4.0.1:
+postgraphile@^4.3.3:
   version "4.3.3"
   resolved "https://registry.yarnpkg.com/postgraphile/-/postgraphile-4.3.3.tgz#9709108f4e70501aaf4dc0cb2eb10172c969c2df"
   integrity sha512-Ji1zHJoLoIZFJwknjkdjIFQ2Scwn5iLaFdcgYGzSicFW54oJCOdE/XyCjkbhTHyPh93Q3KQlKTlP8h6Wd6vQVQ==

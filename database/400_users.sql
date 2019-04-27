@@ -344,10 +344,11 @@ begin
         password_attempts = (case when first_failed_password_attempt is null or first_failed_password_attempt < now() - v_login_attempt_window_duration then 1 else password_attempts + 1 end),
         first_failed_password_attempt = (case when first_failed_password_attempt is null or first_failed_password_attempt < now() - v_login_attempt_window_duration then now() else first_failed_password_attempt end)
       where user_id = v_user.id;
+      raise exception 'Wrong password';
       return null;
     end if;
   else
-    -- No user with that email/username was found
+    raise exception 'No user with that email/username was found';
     return null;
   end if;
 end;
@@ -421,69 +422,66 @@ comment on function app_public.reset_password(user_id uuid, reset_token text, ne
 
 
 create function app_private.really_create_user(
-	username text,
-	email text,
-	email_is_verified bool,
-	name text,
-	avatar_url text,
-	password text default null,
-	is_admin boolean default false
+   username text,
+   email text,
+   email_is_verified bool,
+   name text,
+   avatar_url text,
+   password text default null,
+   is_admin boolean default false
 ) returns app_public.users as $$
 declare
-  v_user app_public.users;
-  v_username text = username;
+   v_user app_public.users;
+   v_namesake app_public.users;
+   v_username text = username;
 begin
-  -- Sanitise the username, and make it unique if necessary.
-  if v_username is null then
-    v_username = coalesce(name, 'user');
-  end if;
-  v_username = regexp_replace(v_username, '^[^a-z]+', '', 'i');
-  v_username = regexp_replace(v_username, '[^a-z0-9]+', '_', 'i');
-  if v_username is null or length(v_username) < 3 then
-    v_username = 'user';
-  end if;
-  select (
-    case
-    when i = 0 then v_username
-    else v_username || i::text
-    end
-  ) into v_username from generate_series(0, 1000) i
-  where not exists(
-    select 1
-    from app_public.users
-    where users.username = (
-      case
-      when i = 0 then v_username
-      else v_username || i::text
-      end
-    )
-  )
-  limit 1;
+   -- Sanitise the username, and make it unique if necessary.
+   if v_username is null then
+      raise exception 'Not have username';
+   end if;
 
-  -- Insert the new user
-  insert into app_public.users (username, name, avatar_url, is_admin) values
-    (v_username, name, avatar_url, is_admin)
-    returning * into v_user;
+   if email is null then
+      raise exception 'Not have email';
+   end if;
 
-	-- Add the user's email
-  if email is not null then
-    insert into app_public.user_emails (user_id, email, is_verified)
-    values (v_user.id, email, email_is_verified);
-  end if;
+   if password is null then
+      raise exception 'Not have password';
+   end if;
 
-  -- Store the password
-  if password is not null then
-    update app_private.user_secrets
-    set password_hash = crypt(password, gen_salt('bf'))
-    where user_id = v_user.id;
-  end if;
+   select users.username into v_namesake
+   from app_public.users
+   where
+      -- Match username against users username, or any verified email address
+      users.username = v_username;
 
-  return v_user;
+   if v_namesake is not null then
+      raise exception 'Already have user with this name';
+   end if;
+
+   -- Insert the new user
+   insert into app_public.users (username, name, avatar_url, is_admin) values
+   (v_username, name, avatar_url, is_admin)
+   returning * into v_user;
+
+   if v_user is null then
+      raise exception 'Cannot insert user';
+   end if;
+
+   -- Add the user's email
+   insert into app_public.user_emails (user_id, email, is_verified)
+   values (v_user.id, email, email_is_verified);
+
+   -- Store the password
+   update app_private.user_secrets
+   set password_hash = crypt(password, gen_salt('bf'))
+   where user_id = v_user.id;
+
+   return v_user;
 end;
 $$ language plpgsql volatile set search_path from current;
 
 comment on function app_private.really_create_user(username text, email text, email_is_verified bool, name text, avatar_url text, password text, is_admin boolean) is
-  E'Creates a user account. All arguments are optional, it trusts the calling method to perform sanitisation.';
+   E'Creates a user account. Arguments: username, email, password required.';
 
 ------------------------------------------------------------------------------------------------------------------------
 

@@ -47,7 +47,6 @@ do $$
 $$;
 
 ------------------------------------------------------------------------------------------------------------------------
-select version();
 
 do $$
    declare
@@ -76,7 +75,7 @@ do $$
       insert into app_public.profiles(
          user_id,
          first_name,
-         family_name,
+         middle_name,
          last_name,
          phone,
          group_number,
@@ -87,9 +86,9 @@ do $$
       ) VALUES
       (
          admin_id,
+         'Leo',
          'VS',
          '09',
-         'Leo',
          '+7-*****',
          'ikpi-52',
          '4',
@@ -169,7 +168,7 @@ do $$
        where name = 'stdout'
        limit 1;
 
-       insert into app_public.problems(name, input_type, output_type, limit_time, limit_memory, is_open, author, tester, description, input_description, output_description) VALUES
+       insert into app_public.problems(name, input_type_id, output_type_id, limit_time, limit_memory, is_open, author_id, tester_id, description, input_description, output_description) VALUES
          ('Simple problem', input_id, output_id, 3000, 268435456, true, author_id, author_id, 'Simple problem, just for start.', 'Three digits', 'One digit'),
          -- https://codeforces.com/problemset/problem/1154/F
          ('Shovels Shop', input_id, output_id, 2000, 268435456, true, author_id, author_id, 'There are n shovels in the nearby shop. The i-th shovel costs a_i bourles.\nMisha has to buy exactly k shovels. Each shovel can be bought no more than once.\nMisha can buy shovels by several purchases. During one purchase he can choose any subset of remaining (non-bought) shovels and buy this subset.\nThere are also m special offers in the shop. The j-th of them is given as a pair (x_j, y_j), and it means that if Misha buys exactly x_j shovels during one purchase then y_j most cheapest of them are for free (i.e. he will not pay for y_j most cheapest shovels during the current purchase)\nisha can use any offer any (possibly, zero) number of times, but he cannot use more than one offer during one purchase (but he can buy shovels without using any offers).Your task is to calculate the minimum cost of buying k shovels, if Misha buys them optimally.', 'The first line of the input contains three integers n, m and k — the number of shovels in the shop, the number of special offers and the number of shovels Misha has to buy, correspondingly.\nThe second line of the input contains n integers a_1, a_2, ..., a_n, where a_i is the cost of the i-th shovel.\nThe next m lines contain special offers. The j-th of them is given as a pair of integers (x_i, y_i) and means that if Misha buys exactly x_i shovels during some purchase, then he can take y_i most cheapest of them for free.', 'Print one integer — the minimum cost of buying k shovels if Misha buys them optimally'),
@@ -233,7 +232,7 @@ do $$
       where name = 'Walking Robot'
       limit 1;
 
-      insert into app_public.problems_to_tags(problem_id, tag_id) values
+      insert into app_public.problems_tags(problem_id, tag_id) values
          (simple_id, imp_id),
          (shovels_id, greed_id),
          (shovels_id, math_id),

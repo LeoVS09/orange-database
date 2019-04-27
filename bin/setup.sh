@@ -75,6 +75,14 @@ export ADMIN_PASSWORD="$SUPERUSER_PASSWORD"
 export GITHUB_KEY=""
 # Client Secret:
 export GITHUB_SECRET=""
+
+# Export schemas pathes
+export GRAPHQL_SCHEMA_PATH="schemas/schema.graphql"
+export JSON_SCHEMA_PATH="schemas/schema.graphql.json"
+export SQL_SCHEMA_PATH="./schemas/schema.sql"
+
+# Postgraphile introspection cache, use for improve startup time
+export PG_CACHE_PATH="./postgraphile.cache"
 CONFIG
   echo "Passwords generated and configuration written to .env"
 
@@ -162,7 +170,8 @@ psql -X1 -v ON_ERROR_STOP=1 "${ROOT_DATABASE_URL}" -f database/initial_data.sql
 
 ./bin/dump-schema.sh
 
-./bin/dump-graphql.sh
+# This dump method not export real server api, only database generated PostGraphile api
+# ./bin/dump-graphql.sh
 
 # All done
 echo "✅ Setup success"

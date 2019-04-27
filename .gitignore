@@ -58,6 +58,9 @@ typings/
 .env
 .env-list
 
+# PostGraphile introspection cache
+postgraphile.cache
+
 # next.js build output
 .next
 

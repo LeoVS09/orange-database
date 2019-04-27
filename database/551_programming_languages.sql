@@ -51,7 +51,7 @@ grant delete       on app_public.programming_languages to orange_visitor;
 
 -- ///////////////////////////////////////// PROFILES TO PROGRAMMING LANGUAGES /////////////////////////////////////////
 
-create table app_public.profiles_to_programming_languages(
+create table app_public.profiles_programming_languages(
 	profile_id uuid not null references app_public.profiles(id),
 	language_id uuid not null references app_public.programming_languages (id),
 
@@ -61,37 +61,24 @@ create table app_public.profiles_to_programming_languages(
 	primary key (profile_id, language_id)
 );
 
-alter table app_public.profiles_to_programming_languages enable row level security;
+alter table app_public.profiles_programming_languages enable row level security;
 
 create trigger _100_timestamps
-  after insert or update on app_public.profiles_to_programming_languages
+  after insert or update on app_public.profiles_programming_languages
   for each row
   execute procedure app_private.tg__update_timestamps();
 
 ------------------------------------------------------------------------------------------------------------------------
 
-create policy select_all   on app_public.profiles_to_programming_languages for select using (true);
-create policy insert_admin on app_public.profiles_to_programming_languages for insert with check (app_public.current_user_is_admin());
-create policy update_admin on app_public.profiles_to_programming_languages for update using (app_public.current_user_is_admin());
-create policy delete_admin on app_public.profiles_to_programming_languages for delete using (app_public.current_user_is_admin());
+create policy select_all   on app_public.profiles_programming_languages for select using (true);
+create policy insert_admin on app_public.profiles_programming_languages for insert with check (app_public.current_user_is_admin());
+create policy update_admin on app_public.profiles_programming_languages for update using (app_public.current_user_is_admin());
+create policy delete_admin on app_public.profiles_programming_languages for delete using (app_public.current_user_is_admin());
 
 ------------------------------------------------------------------------------------------------------------------------
 
-grant select       on app_public.profiles_to_programming_languages to orange_visitor;
-grant insert(profile_id, language_id) on app_public.profiles_to_programming_languages to orange_visitor;
-grant delete       on app_public.profiles_to_programming_languages to orange_visitor;
-
-------------------------------------------------------------------------------------------------------------------------
-
-create function app_public.profile_programming_languages(p app_public.profiles)
-returns setof app_public.programming_languages as $$
-
-	select app_public.programming_languages.*
-	from app_public.programming_languages
-	inner join app_public.profiles_to_programming_languages
-	on (app_public.profiles_to_programming_languages.language_id = app_public.programming_languages.id)
-	where app_public.profiles_to_programming_languages.profile_id = p.id;
-
-$$ language sql stable;
+grant select       on app_public.profiles_programming_languages to orange_visitor;
+grant insert(profile_id, language_id) on app_public.profiles_programming_languages to orange_visitor;
+grant delete       on app_public.profiles_programming_languages to orange_visitor;
 
 ------------------------------------------------------------------------------------------------------------------------

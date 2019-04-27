@@ -75,8 +75,8 @@ create table app_public.problems (
 
   note text default null check (char_length(note) < 200),
 
-  input_type uuid references app_public.program_input_type(id),
-  output_type uuid references app_public.program_output_type(id),
+  input_type_id uuid references app_public.program_input_type(id),
+  output_type_id uuid references app_public.program_output_type(id),
 
   limit_time int not null,
   limit_memory int not null,
@@ -87,8 +87,8 @@ create table app_public.problems (
   updated_at timestamptz not null default now(),
   published_at timestamptz default null,
 
-  author uuid references app_public.profiles(id) on delete restrict,
-  tester uuid references app_public.profiles(id) on delete restrict default null
+  author_id uuid references app_public.profiles(id) on delete restrict,
+  tester_id uuid references app_public.profiles(id) on delete restrict default null
 );
 
 alter table app_public.problems enable row level security;
@@ -116,10 +116,10 @@ comment on column app_public.problems.output_description is
 comment on column app_public.problems.note is
     E'Addition note, mostly used be author and tester';
 
-comment on column app_public.problems.input_type is
+comment on column app_public.problems.input_type_id is
     E'Type input of problem, aka stdin';
 
-comment on column app_public.problems.output_type is
+comment on column app_public.problems.output_type_id is
     E'Type output of problem, aka stdout';
 
 comment on column app_public.problems.limit_time is
@@ -140,17 +140,20 @@ comment on column app_public.problems.updated_at is
 comment on column app_public.problems.published_at is
     E'Date when problem must be open';
 
-comment on column app_public.problems.author is
+comment on column app_public.problems.author_id is
     E'\nCreator of problem';
 
-comment on column app_public.problems.tester is
+comment on column app_public.problems.tester_id is
     E'Tester of problem';
 
-comment on constraint problems_author_fkey on app_public.problems is
-    E'@foreignFieldName problems_author\n@fieldName author_profile';
+--comment on constraint problems_author_fkey on app_public.problems is
+--    E'@foreignFieldName problems_author\n@fieldName authorProfile';
 
-comment on constraint problems_tester_fkey on app_public.problems is
-    E'@foreignFieldName problems_tester\n@fieldName tester_profile';
+--comment on constraint problems_tester_fkey on app_public.problems is
+--    E'@foreignFieldName problems_tester\n@fieldName testerProfile';
+
+--comment on constraint problems_input_type_fkey on app_public.problems is
+--    E'@fieldName inputType'
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -162,8 +165,8 @@ create policy delete_teacher on app_public.problems for delete using (app_public
 ------------------------------------------------------------------------------------------------------------------------
 
 grant select on app_public.problems to orange_visitor;
-grant insert(name, description, note, input_type, output_type, limit_time, limit_memory, is_open, published_at, author, tester) on app_public.problems to orange_visitor;
-grant update(name, description, note, input_type, output_type, limit_time, limit_memory, is_open, published_at, author, tester) on app_public.problems to orange_visitor;
+grant insert(name, description, note, input_type_id, output_type_id, limit_time, limit_memory, is_open, published_at, author_id, tester_id) on app_public.problems to orange_visitor;
+grant update(name, description, note, input_type_id, output_type_id, limit_time, limit_memory, is_open, published_at, author_id, tester_id) on app_public.problems to orange_visitor;
 grant delete on app_public.problems to orange_visitor;
 
 -- ///////////////////////////////////////////////////// TAGS //////////////////////////////////////////////////////////
@@ -199,7 +202,7 @@ grant delete on app_public.tags to orange_visitor;
 
 ------------------------------------------------------------------------------------------------------------------------
 
-create table app_public.problems_to_tags(
+create table app_public.problems_tags(
 	problem_id uuid not null references app_public.problems(id),
 	tag_id uuid not null references app_public.tags(id),
 
@@ -209,38 +212,25 @@ create table app_public.problems_to_tags(
 	primary key (problem_id, tag_id)
 );
 
-alter table app_public.problems_to_tags enable row level security;
+alter table app_public.problems_tags enable row level security;
 
 create trigger _100_timestamps
-  after insert or update on app_public.problems_to_tags
+  after insert or update on app_public.problems_tags
   for each row
   execute procedure app_private.tg__update_timestamps();
 
 ------------------------------------------------------------------------------------------------------------------------
 
-create policy select_all   on app_public.problems_to_tags for select using (true);
-create policy insert_teacher on app_public.problems_to_tags for insert with check (app_public.current_user_is_teacher());
-create policy update_teacher on app_public.problems_to_tags for update using (app_public.current_user_is_teacher());
-create policy delete_teacher on app_public.problems_to_tags for delete using (app_public.current_user_is_teacher());
+create policy select_all   on app_public.problems_tags for select using (true);
+create policy insert_teacher on app_public.problems_tags for insert with check (app_public.current_user_is_teacher());
+create policy update_teacher on app_public.problems_tags for update using (app_public.current_user_is_teacher());
+create policy delete_teacher on app_public.problems_tags for delete using (app_public.current_user_is_teacher());
 
 ------------------------------------------------------------------------------------------------------------------------
 
-grant select       on app_public.problems_to_tags to orange_visitor;
-grant insert(problem_id, tag_id) on app_public.problems_to_tags to orange_visitor;
-grant delete       on app_public.problems_to_tags to orange_visitor;
-
-------------------------------------------------------------------------------------------------------------------------
-
-create function app_public.problem_tags(p app_public.problems)
-returns setof app_public.tags as $$
-
-	select app_public.tags.*
-	from app_public.tags
-	inner join app_public.problems_to_tags
-	on (app_public.problems_to_tags.tag_id = app_public.tags.id)
-	where app_public.problems_to_tags.problem_id = p.id;
-
-$$ language sql stable;
+grant select       on app_public.problems_tags to orange_visitor;
+grant insert(problem_id, tag_id) on app_public.problems_tags to orange_visitor;
+grant delete       on app_public.problems_tags to orange_visitor;
 
 -- ///////////////////////////////////////////////// TESTS /////////////////////////////////////////////////////////////
 

@@ -7,7 +7,7 @@ create table app_public.contests (
     name text not null check (char_length(name) < 160),
     text text default null,
 
-    creator uuid not null references app_public.users(id),
+    creator_id uuid not null references app_public.users(id),
 
     start_date timestamptz default null check ( start_date > now() ),
     end_date timestamptz default null constraint is_start_date_defined check ( start_date is not null ),
@@ -42,7 +42,7 @@ grant select on app_public.contests to orange_visitor;
 grant insert(
     name,
     text,
-    creator,
+    creator_id,
     start_date,
     end_date,
     start_publication_date,
@@ -51,7 +51,7 @@ grant insert(
 grant update(
     name,
     text,
-    creator,
+    creator_id,
     start_date,
     end_date,
     start_publication_date,
@@ -61,7 +61,8 @@ grant delete on app_public.contests to orange_visitor;
 
 -- /////////////////////////////////////////////// CONTESTS TO TEAMS ///////////////////////////////////////////////////
 
-create table app_public.contests_to_teams(
+create table app_public.contests_teams
+(
 	contest_id uuid not null references app_public.contests(id),
 	team_id uuid not null references app_public.teams(id),
 
@@ -71,29 +72,30 @@ create table app_public.contests_to_teams(
 	primary key (contest_id, team_id)
 );
 
-alter table app_public.contests_to_teams enable row level security;
+alter table app_public.contests_teams enable row level security;
 
 create trigger _100_timestamps
-  after insert or update on app_public.contests_to_teams
+  after insert or update on app_public.contests_teams
   for each row
   execute procedure app_private.tg__update_timestamps();
 
 ------------------------------------------------------------------------------------------------------------------------
 
-create policy select_all   on app_public.contests_to_teams for select using (true);
-create policy insert_teacher on app_public.contests_to_teams for insert with check (app_public.current_user_is_teacher());
-create policy update_teacher on app_public.contests_to_teams for update using (app_public.current_user_is_teacher());
-create policy delete_teacher on app_public.contests_to_teams for delete using (app_public.current_user_is_teacher());
+create policy select_all   on app_public.contests_teams for select using (true);
+create policy insert_teacher on app_public.contests_teams for insert with check (app_public.current_user_is_teacher());
+create policy update_teacher on app_public.contests_teams for update using (app_public.current_user_is_teacher());
+create policy delete_teacher on app_public.contests_teams for delete using (app_public.current_user_is_teacher());
 
 ------------------------------------------------------------------------------------------------------------------------
 
-grant select       on app_public.contests_to_teams to orange_visitor;
-grant insert(contest_id, team_id) on app_public.contests_to_teams to orange_visitor;
-grant delete       on app_public.contests_to_teams to orange_visitor;
+grant select       on app_public.contests_teams to orange_visitor;
+grant insert(contest_id, team_id) on app_public.contests_teams to orange_visitor;
+grant delete       on app_public.contests_teams to orange_visitor;
 
 -- /////////////////////////////////////////////// CONTESTS TO PROFILES ////////////////////////////////////////////////
 
-create table app_public.contests_to_profiles(
+create table app_public.contests_profiles
+(
 	contest_id uuid not null references app_public.contests(id),
 	profile_id uuid not null references app_public.profiles(id),
 
@@ -103,24 +105,24 @@ create table app_public.contests_to_profiles(
 	primary key (contest_id, profile_id)
 );
 
-alter table app_public.contests_to_profiles enable row level security;
+alter table app_public.contests_profiles enable row level security;
 
 create trigger _100_timestamps
-  after insert or update on app_public.contests_to_profiles
+  after insert or update on app_public.contests_profiles
   for each row
   execute procedure app_private.tg__update_timestamps();
 
 ------------------------------------------------------------------------------------------------------------------------
 
-create policy select_all   on app_public.contests_to_profiles for select using (true);
-create policy insert_teacher on app_public.contests_to_profiles for insert with check (app_public.current_user_is_teacher());
-create policy update_teacher on app_public.contests_to_profiles for update using (app_public.current_user_is_teacher());
-create policy delete_teacher on app_public.contests_to_profiles for delete using (app_public.current_user_is_teacher());
+create policy select_all   on app_public.contests_profiles for select using (true);
+create policy insert_teacher on app_public.contests_profiles for insert with check (app_public.current_user_is_teacher());
+create policy update_teacher on app_public.contests_profiles for update using (app_public.current_user_is_teacher());
+create policy delete_teacher on app_public.contests_profiles for delete using (app_public.current_user_is_teacher());
 
 ------------------------------------------------------------------------------------------------------------------------
 
-grant select       on app_public.contests_to_profiles to orange_visitor;
-grant insert(contest_id, profile_id) on app_public.contests_to_profiles to orange_visitor;
-grant delete       on app_public.contests_to_profiles to orange_visitor;
+grant select       on app_public.contests_profiles to orange_visitor;
+grant insert(contest_id, profile_id) on app_public.contests_profiles to orange_visitor;
+grant delete       on app_public.contests_profiles to orange_visitor;
 
 ------------------------------------------------------------------------------------------------------------------------
