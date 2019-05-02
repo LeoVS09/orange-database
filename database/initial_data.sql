@@ -134,13 +134,13 @@ $$;
 
 ------------------------------------------------------------------------------------------------------------------------
 
-insert into app_public.program_input_type(name) values
-	('stdin'),
-	('file');
+insert into app_public.program_input_type(name, code) values
+	('stdin', 'stdin'),
+	('file', 'file');
 
-insert into app_public.program_output_type(name) values
-	('stdout'),
-	('file');
+insert into app_public.program_output_type(name, code) values
+	('stdout', 'stdout'),
+	('file', 'file');
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -269,14 +269,14 @@ do $$
       limit 1;
 
       insert into app_public.tests(index, input, output, public, problem_id) VALUES
-         (1, '1 1', '0', true, simple_id),
-         (2, '2 3', '6', true, simple_id),
-         (3, '49 1808', '359087121', true, simple_id),
-         (1, '7 4 5\n2 5 4 2 6 3 1\n2 1\n6 5\n2 1\n3 1', '7', true, shovels_id),
-         (2, '9 4 8\n6 8 5 1 8 1 1 2 1\n9 2\n8 4\n5 3\n9 7', '17', true, shovels_id),
-         (3, '5 1 4\n2 5 7 4 6\n5 4', '17', false, shovels_id),
-         (1, '5 2 1\n0 1 0 1 0', '5', true, walking_id),
-         (2, '6 2 1\n1 0 0 1 0 1', '3', true, walking_id);
+         (0, '1 1', '0', true, simple_id),
+         (1, '2 3', '6', true, simple_id),
+         (2, '49 1808', '359087121', true, simple_id),
+         (0, '7 4 5\n2 5 4 2 6 3 1\n2 1\n6 5\n2 1\n3 1', '7', true, shovels_id),
+         (1, '9 4 8\n6 8 5 1 8 1 1 2 1\n9 2\n8 4\n5 3\n9 7', '17', true, shovels_id),
+         (2, '5 1 4\n2 5 7 4 6\n5 4', '17', false, shovels_id),
+         (0, '5 2 1\n0 1 0 1 0', '5', true, walking_id),
+         (1, '6 2 1\n1 0 0 1 0 1', '3', true, walking_id);
    end;
 $$;
 

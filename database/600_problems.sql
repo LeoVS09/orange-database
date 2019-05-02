@@ -4,7 +4,8 @@ create extension if not exists "uuid-ossp";
 
 create table app_public.program_input_type(
     id uuid primary key default uuid_generate_v1mc(),
-    name text not null check (char_length(name) < 10),
+    name text not null unique check (char_length(name) < 10),
+    code text not null unique check (char_length(code) < 10),
 
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now()
@@ -27,8 +28,8 @@ create policy delete_admin on app_public.program_input_type for delete using (ap
 ------------------------------------------------------------------------------------------------------------------------
 
 grant select on app_public.program_input_type to orange_visitor;
-grant insert(name) on app_public.program_input_type to orange_visitor;
-grant update(name) on app_public.program_input_type to orange_visitor;
+grant insert(name, code) on app_public.program_input_type to orange_visitor;
+grant update(name, code) on app_public.program_input_type to orange_visitor;
 grant delete on app_public.program_input_type to orange_visitor;
 
 
@@ -36,7 +37,8 @@ grant delete on app_public.program_input_type to orange_visitor;
 
 create table app_public.program_output_type(
     id uuid primary key default uuid_generate_v1mc(),
-    name text not null check (char_length(name) < 10),
+    name text not null unique check (char_length(name) < 10),
+    code text not null unique check (char_length(code) < 10),
 
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now()
@@ -59,8 +61,8 @@ create policy delete_admin on app_public.program_output_type for delete using (a
 ------------------------------------------------------------------------------------------------------------------------
 
 grant select on app_public.program_output_type to orange_visitor;
-grant insert(name) on app_public.program_output_type to orange_visitor;
-grant update(name) on app_public.program_output_type to orange_visitor;
+grant insert(name, code) on app_public.program_output_type to orange_visitor;
+grant update(name, code) on app_public.program_output_type to orange_visitor;
 grant delete on app_public.program_output_type to orange_visitor;
 
 
