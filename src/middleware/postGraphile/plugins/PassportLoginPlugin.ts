@@ -54,14 +54,14 @@ export default makeExtendSchemaPlugin(build => ({
                   rows: [user],
                } = await rootPgPool.query(
                      `select users.*
-                      from app_private.really_create_user(
-                              username => $1,
-                              email => $2,
-                              email_is_verified => false,
-                              name => $3,
-                              avatar_url => $4,
-                              password => $5
-                              ) users
+                        from app_private.really_create_user(
+                           username => $1,
+                           email => $2,
+                           email_is_verified => false,
+                           name => $3,
+                           avatar_url => $4,
+                           password => $5
+                        ) users where not (users is null)
                       `,
                   [username, email, name, avatarUrl, password]
                );
@@ -74,12 +74,12 @@ export default makeExtendSchemaPlugin(build => ({
                try {
                   // TODO: move profile and user registration in postgres
                   const {rows: [profile]} = await rootPgPool.query(
-                        `insert into app_public.profiles(
-                             user_id,
-                             first_name,
-                             middle_name,
-                             last_name)
-                         VALUES ($1, $2, $3, $4) returning *`,
+                     `insert into app_public.profiles(
+                       user_id,
+                       first_name,
+                       middle_name,
+                       last_name)
+                     VALUES ($1, $2, $3, $4) returning *`,
                      [user.id, firstName, middleName || '', lastName]
                   )
 
@@ -124,13 +124,11 @@ export default makeExtendSchemaPlugin(build => ({
                const {
                   rows: [user],
                } = await rootPgPool.query(
-                     `select users.*
-                      from app_private.login($1, $2) users
+                     `select users.* from app_private.login($1, $2) 
+                        users where not (users is null)
                       `,
                   [username, password]
                );
-
-               // TODO: using 'where user not null' not work properly
 
                console.log("try login user", user)
 

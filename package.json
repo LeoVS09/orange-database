@@ -6,7 +6,7 @@
    "scripts": {
       "build": "babel ./src -d ./dist --extensions \".ts\" --source-maps",
       "production": "babel ./src -d ./dist --extensions \".ts\"",
-      "watch": "babel ./src -d ./dist --extensions \".ts\" --source-maps --watch",
+      "watch": "babel ./src --watch -d ./dist --extensions \".ts\" --source-maps ",
       "nodemon:start": "nodemon ./dist/index.js"
    },
    "repository": {
@@ -37,7 +37,8 @@
       "pg": "^7.10.0",
       "postgraphile": "^4.3.3",
       "graphile-build-pg": "^4.3.1",
-      "graphql": "^14.2.1"
+      "graphql": "^14.2.1",
+      "jsonwebtoken": "^8.5.1"
    },
    "devDependencies": {
       "@babel/cli": "^7.1.5",

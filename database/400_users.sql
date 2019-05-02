@@ -454,7 +454,7 @@ begin
       -- Match username against users username, or any verified email address
       users.username = v_username;
 
-   if v_namesake is not null then
+   if not (v_namesake is null) then
       raise exception 'Already have user with this name';
    end if;
 

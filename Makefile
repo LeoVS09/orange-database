@@ -79,6 +79,8 @@ docker-build:
 docker-console: env-to-list
 	docker-compose run --publish=8765:8765 orange-database  /bin/bash
 
+console: docker-console
+
 build-console: docker-build docker-console
 
 db-up:
