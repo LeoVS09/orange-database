@@ -47,7 +47,7 @@ $$ language sql stable;
 create table app_public.cities (
 	id uuid primary key default uuid_generate_v1mc(),
 	name text not null check (char_length(name) < 80),
-    country_id uuid references app_public.countries(id) on delete cascade,
+    country_id uuid not null references app_public.countries(id) on delete cascade,
 
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now()
@@ -79,7 +79,7 @@ grant delete on app_public.cities to orange_visitor;
 create table app_public.universities (
 	id uuid primary key default uuid_generate_v1mc(),
 
-	city_id uuid references app_public.cities(id),
+	city_id uuid not null references app_public.cities(id),
 
 	short_name text not null check (char_length(short_name) < 80),
 	long_name text check (char_length(long_name) < 300),

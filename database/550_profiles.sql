@@ -4,7 +4,7 @@ create extension if not exists "uuid-ossp";
 
 create table app_public.profiles (
 	id uuid primary key default uuid_generate_v1mc(),
-    user_id uuid references app_public.users(id) on delete cascade,
+    user_id uuid not null references app_public.users(id) on delete cascade,
 
 	first_name text default '' check (char_length(first_name) < 80),
 	middle_name text default '' check (char_length(middle_name) < 80),

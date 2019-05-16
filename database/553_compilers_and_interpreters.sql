@@ -8,7 +8,7 @@ create table app_public.compilers (
 	alias text default null check (char_length(name) < 30),
 	code text default null check (char_length(code) < 100),
 	version text not null unique check (char_length(version) < 10),
-	language_id uuid references app_public.programming_languages(id) on delete restrict,
+	language_id uuid not null references app_public.programming_languages(id) on delete restrict,
 	comment text not null check (char_length(comment) < 300),
 
 	-- Use boolean for set another type of table not a best practice,

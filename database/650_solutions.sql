@@ -25,7 +25,7 @@ create function app_public.current_user_can_send_solution(problem_id uuid)
 returns boolean as $$
     -- TODO: add contests support, and users rights
 	select exists(
-	    select 1 from app_public.problems where id = problem_id and is_open = true
+	    select 1 from app_public.problems where id = problem_id and publication_date <= now()
         );
 
 $$ language sql stable;

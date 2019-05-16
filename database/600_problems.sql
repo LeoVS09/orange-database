@@ -77,19 +77,18 @@ create table app_public.problems (
 
   note text default null check (char_length(note) < 200),
 
-  input_type_id uuid references app_public.program_input_type(id),
-  output_type_id uuid references app_public.program_output_type(id),
+  input_type_id uuid not null references app_public.program_input_type(id),
+  output_type_id uuid not null references app_public.program_output_type(id),
 
   limit_time int not null,
   limit_memory int not null,
-
-  is_open boolean default false,
+  difficulty  smallint default 0 constraint only_positive_difficulty check (difficulty >= 0),
 
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  published_at timestamptz default null,
+  publication_date timestamptz default null,
 
-  author_id uuid references app_public.profiles(id) on delete restrict,
+  author_id uuid not null references app_public.profiles(id) on delete restrict,
   tester_id uuid references app_public.profiles(id) on delete restrict default null
 );
 
@@ -130,8 +129,8 @@ comment on column app_public.problems.limit_time is
 comment on column app_public.problems.limit_memory is
     E'Memory limit for problem. Units is bytes';
 
-comment on column app_public.problems.is_open is
-    E'Define if this problem can be visible in current moment';
+comment on column app_public.problems.difficulty is
+    E'Level of difficulty. Where 0 is very easy and 100 is very hard';
 
 comment on column app_public.problems.created_at is
     E'Date of problem creation';
@@ -139,8 +138,8 @@ comment on column app_public.problems.created_at is
 comment on column app_public.problems.updated_at is
     E'Date of last problem modification';
 
-comment on column app_public.problems.published_at is
-    E'Date when problem must be open';
+comment on column app_public.problems.publication_date is
+    E'Define when this problem can be visible';
 
 comment on column app_public.problems.author_id is
     E'\nCreator of problem';
@@ -167,8 +166,8 @@ create policy delete_teacher on app_public.problems for delete using (app_public
 ------------------------------------------------------------------------------------------------------------------------
 
 grant select on app_public.problems to orange_visitor;
-grant insert(name, description, note, input_type_id, output_type_id, limit_time, limit_memory, is_open, published_at, author_id, tester_id) on app_public.problems to orange_visitor;
-grant update(name, description, note, input_type_id, output_type_id, limit_time, limit_memory, is_open, published_at, author_id, tester_id) on app_public.problems to orange_visitor;
+grant insert(name, description, note, input_type_id, output_type_id, limit_time, limit_memory, publication_date, author_id, tester_id) on app_public.problems to orange_visitor;
+grant update(name, description, note, input_type_id, output_type_id, limit_time, limit_memory, publication_date, author_id, tester_id) on app_public.problems to orange_visitor;
 grant delete on app_public.problems to orange_visitor;
 
 -- ///////////////////////////////////////////////////// TAGS //////////////////////////////////////////////////////////
@@ -241,9 +240,9 @@ create table app_public.tests (
     index int not null,
     input text not null,
     output text not null,
-    public boolean default true,
+    is_public boolean default false,
 
-    problem_id uuid references app_public.problems on delete cascade,
+    problem_id uuid not null references app_public.problems on delete cascade,
 
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now()
@@ -266,8 +265,8 @@ create policy delete_teacher on app_public.tests for delete using (app_public.cu
 ------------------------------------------------------------------------------------------------------------------------
 
 grant select on app_public.tests to orange_visitor;
-grant insert(index, input, output, public) on app_public.tests to orange_visitor;
-grant update(index, input, output, public) on app_public.tests to orange_visitor;
+grant insert(index, input, output, is_public) on app_public.tests to orange_visitor;
+grant update(index, input, output, is_public) on app_public.tests to orange_visitor;
 grant delete on app_public.tests to orange_visitor;
 
 ------------------------------------------------------------------------------------------------------------------------
