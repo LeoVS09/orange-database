@@ -265,7 +265,7 @@ create policy delete_teacher on app_public.tests for delete using (app_public.cu
 ------------------------------------------------------------------------------------------------------------------------
 
 grant select on app_public.tests to orange_visitor;
-grant insert(index, input, output, is_public) on app_public.tests to orange_visitor;
+grant insert(index, input, output, is_public, problem_id) on app_public.tests to orange_visitor;
 grant update(index, input, output, is_public) on app_public.tests to orange_visitor;
 grant delete on app_public.tests to orange_visitor;
 

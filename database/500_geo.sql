@@ -5,6 +5,7 @@ create extension if not exists "uuid-ossp";
 create table app_public.countries (
 	id uuid primary key default uuid_generate_v1mc(),
     name text not null check (char_length(name) < 80),
+    code text not null check (char_length(code) < 3),
 
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now()
@@ -27,8 +28,8 @@ create policy delete_admin on app_public.countries for delete using (app_public.
 ------------------------------------------------------------------------------------------------------------------------
 
 grant select on app_public.countries to orange_visitor;
-grant insert(name) on app_public.countries to orange_visitor;
-grant update(name) on app_public.countries to orange_visitor;
+grant insert(name, code) on app_public.countries to orange_visitor;
+grant update(name, code) on app_public.countries to orange_visitor;
 grant delete on app_public.countries to orange_visitor;
 
 ------------------------------------------------------------------------------------------------------------------------
