@@ -159,3 +159,40 @@ grant insert(contest_id, problem_id) on app_public.contests_problems to orange_v
 grant delete       on app_public.contests_problems to orange_visitor;
 
 ------------------------------------------------------------------------------------------------------------------------
+
+create view app_public.running_contests as
+    select *
+    from app_public.contests
+    where start_date <= now() and now() <= end_date;
+
+create view app_public.public_contests as
+    select *
+    from app_public.contests
+    where start_publication_date <= now() and now() <= end_date;
+
+create view app_public.public_running_contests as
+    select *
+    from app_public.running_contests
+    where start_publication_date <= now() and now() <= end_date;
+
+------------------------------------------------------------------------------------------------------------------------
+
+comment on view app_public.running_contests is E'@primaryKey id';
+
+comment on view app_public.running_contests is E'@foreignKey (creator_id) references app_public.profiles';
+
+comment on view app_public.public_contests is E'@primaryKey id';
+
+comment on view app_public.public_contests is E'@foreignKey (creator_id) references app_public.profiles';
+
+comment on view app_public.public_running_contests is E'@primaryKey id';
+
+comment on view app_public.public_running_contests is E'@foreignKey (creator_id) references app_public.profiles';
+
+------------------------------------------------------------------------------------------------------------------------
+
+alter table app_public.running_contests owner to orange_visitor;
+
+alter table app_public.public_contests owner to orange_visitor;
+
+alter table app_public.public_running_contests owner to orange_visitor;

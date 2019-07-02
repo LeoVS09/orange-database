@@ -4,10 +4,10 @@
    "description": "Database for Orange, based on PostgreSQL and GraphQL",
    "main": "index.js",
    "scripts": {
-      "build": "babel ./src -d ./dist --extensions \".ts\" --source-maps",
-      "production": "babel ./src -d ./dist --extensions \".ts\"",
-      "watch": "babel ./src --watch -d ./dist --extensions \".ts\" --source-maps ",
-      "nodemon:start": "nodemon ./dist/index.js"
+      "build": "babel ./src -d ./build --extensions \".ts\" --source-maps",
+      "production": "babel ./src -d ./build --extensions \".ts\"",
+      "watch": "babel ./src --watch -d ./build --extensions \".ts\" --source-maps ",
+      "nodemon:start": "nodemon ./build/index.js"
    },
    "repository": {
       "type": "git",
@@ -35,7 +35,7 @@
       "koa-session": "^5.10.0",
       "passport-github": "^1.1.0",
       "pg": "^7.10.0",
-      "postgraphile": "^4.3.3",
+      "postgraphile": "^4.4.0-rc.1",
       "graphile-build-pg": "^4.3.1",
       "graphql": "^14.2.1",
       "jsonwebtoken": "^8.5.1"

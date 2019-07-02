@@ -100,7 +100,7 @@ create trigger _100_timestamps
   execute procedure app_private.tg__update_timestamps();
 
 comment on table app_public.problems is
-    E'nOlympiad programming task';
+    E'\nOlympiad programming task';
 
 comment on column app_public.problems.name is
     E'Name of problem';
@@ -142,23 +142,14 @@ comment on column app_public.problems.publication_date is
     E'Define when this problem can be visible';
 
 comment on column app_public.problems.author_id is
-    E'\nCreator of problem';
+    E'Creator of problem';
 
 comment on column app_public.problems.tester_id is
     E'Tester of problem';
 
---comment on constraint problems_author_fkey on app_public.problems is
---    E'@foreignFieldName problems_author\n@fieldName authorProfile';
-
---comment on constraint problems_tester_fkey on app_public.problems is
---    E'@foreignFieldName problems_tester\n@fieldName testerProfile';
-
---comment on constraint problems_input_type_fkey on app_public.problems is
---    E'@fieldName inputType'
-
 ------------------------------------------------------------------------------------------------------------------------
 
-create policy select_all on app_public.problems for select using (true);
+create policy select_all on app_public.problems for select using (app_public.current_user_is_teacher() or publication_date <= now());
 create policy insert_teacher on app_public.problems for insert with check (app_public.current_user_is_teacher());
 create policy update_teacher on app_public.problems for update using (app_public.current_user_is_teacher());
 create policy delete_teacher on app_public.problems for delete using (app_public.current_user_is_teacher());
@@ -166,9 +157,31 @@ create policy delete_teacher on app_public.problems for delete using (app_public
 ------------------------------------------------------------------------------------------------------------------------
 
 grant select on app_public.problems to orange_visitor;
-grant insert(name, description, note, input_type_id, output_type_id, limit_time, limit_memory, publication_date, author_id, tester_id) on app_public.problems to orange_visitor;
-grant update(name, description, note, input_type_id, output_type_id, limit_time, limit_memory, publication_date, author_id, tester_id) on app_public.problems to orange_visitor;
+grant insert(name, description, note, input_type_id, output_type_id, limit_time, limit_memory, difficulty, publication_date, author_id, tester_id) on app_public.problems to orange_visitor;
+grant update(name, description, note, input_type_id, output_type_id, limit_time, limit_memory, difficulty, publication_date, author_id, tester_id) on app_public.problems to orange_visitor;
 grant delete on app_public.problems to orange_visitor;
+
+------------------------------------------------------------------------------------------------------------------------
+
+create view app_public.public_problems as
+    select
+           id,
+           name,
+           description,
+           input_type_id,
+           output_type_id,
+           limit_time,
+           limit_memory,
+           publication_date,
+           created_at,
+           updated_at,
+           author_id,
+           tester_id
+    from app_public.problems
+    where publication_date <= now();
+
+comment on view app_public.public_problems is
+    E'Problems which can be visible to all users';
 
 -- ///////////////////////////////////////////////////// TAGS //////////////////////////////////////////////////////////
 
@@ -245,7 +258,8 @@ create table app_public.tests (
     problem_id uuid not null references app_public.problems on delete cascade,
 
     created_at timestamptz not null default now(),
-    updated_at timestamptz not null default now()
+    updated_at timestamptz not null default now(),
+    unique (index, problem_id)
 );
 
 alter table app_public.tests enable row level security;
@@ -257,7 +271,7 @@ create trigger _100_timestamps
 
 ------------------------------------------------------------------------------------------------------------------------
 
-create policy select_all on app_public.tests for select using (true);
+create policy select_all on app_public.tests for select using (app_public.current_user_is_teacher() or is_public = true);
 create policy insert_teacher on app_public.tests for insert with check (app_public.current_user_is_teacher());
 create policy update_teacher on app_public.tests for update using (app_public.current_user_is_teacher());
 create policy delete_teacher on app_public.tests for delete using (app_public.current_user_is_teacher());
@@ -270,3 +284,21 @@ grant update(index, input, output, is_public) on app_public.tests to orange_visi
 grant delete on app_public.tests to orange_visitor;
 
 ------------------------------------------------------------------------------------------------------------------------
+
+create view app_public.public_tests as
+    select *
+    from app_public.tests
+    where is_public = true;
+
+------------------------------------------------------------------------------------------------------------------------
+
+comment on view app_public.public_tests is
+    E'Public visible tests';
+
+comment on view app_public.public_tests is E'@primaryKey id';
+
+comment on view app_public.public_tests is E'@foreignKey (problem_id) references app_public.problems';
+
+------------------------------------------------------------------------------------------------------------------------
+
+alter table app_public.public_tests owner to orange_visitor;

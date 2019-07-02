@@ -24,7 +24,41 @@ do $$
         values ('Moscow', russia_id),
                ('Saint-Petersburg', russia_id),
                ('Volgograd', russia_id),
-               ('Novosibirsk', russia_id);
+               ('Novosibirsk', russia_id),
+               ('Yekaterinburg', russia_id),
+               ('Nizhniy Novgorod', russia_id),
+               ('Samara', russia_id),
+               ('Omsk', russia_id),
+               ('Kazan', russia_id),
+               ('Chelyabinsk', russia_id),
+               ('Rostov-na-Donu', russia_id),
+               ('Ufa', russia_id),
+               ('Perm', russia_id),
+               ('Krasnoyarsk', russia_id),
+               ('Voronezh', russia_id),
+               ('Saratov', russia_id),
+               ('Krasnodar', russia_id),
+               ('Ul’yanovsk', russia_id),
+               ('Izhevsk', russia_id),
+               ('Yaroslavl’', russia_id),
+               ('Barnaul', russia_id),
+               ('Vladivostok', russia_id),
+               ('Irkutsk', russia_id),
+               ('Khabarovsk', russia_id),
+               ('Makhachkala', russia_id),
+               ('Orenburg', russia_id),
+               ('Novokuznetsk', russia_id),
+               ('Tomsk', russia_id),
+               ('Ryazan’', russia_id),
+               ('Tyumen’', russia_id),
+               ('Lipetsk', russia_id),
+               ('Penza', russia_id),
+               ('Astrakhan’', russia_id),
+               ('Tula’', russia_id),
+               ('Kemerovo', russia_id),
+               ('Krasnyye Chelny', russia_id),
+               ('Kirov', russia_id),
+               ('Cheboksary', russia_id);
     end
     $$;
 
@@ -115,7 +149,7 @@ do $$
         where name = 'JavaScript'
         limit 1;
 
-        insert into app_public.compilers(name, alias, code, version, language_id, comment, is_interpreter)
+        insert into app_public.translators(name, alias, code, version, language_id, comment, is_interpreter)
         VALUES ('g++', 'gcc', 'g++ (Debian 6.3.0-18+deb9u1) 6.3.0 20170516', '6.3.0', cpp_id, 'base g++ for debian',
                 false),
                ('nodejs', 'node', 'nodejs v10.15.3', '10.15.3', js_id, 'latest stable version installed by nvm', true);
