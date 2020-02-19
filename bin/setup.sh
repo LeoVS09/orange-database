@@ -17,6 +17,7 @@ else
   # This will generate passwords that are safe to use in envvars without needing to be escaped:
   SUPERUSER_PASSWORD="$(openssl rand -base64 30 | tr '+/' '-_')"
   AUTH_USER_PASSWORD="$(openssl rand -base64 30 | tr '+/' '-_')"
+  PGUSER="postgres"
 
   # This is our '.env-config' config file, we're writing it now so that if something goes wrong we won't lose the passwords.
   cat >> .env-config <<CONFIG
@@ -38,8 +39,9 @@ export JWT_SECRET="$(openssl rand -base64 48)"
 
 
 # Used by psql tool for default connect to database
-export PGHOST="db"
-export PGUSER="postgres"
+export PGHOST=db
+export PGUSER=$PGUSER
+export PGPASSWORD=$SUPERUSER_PASSWORD
 
 # These are the connection strings for the DB and the test DB.
 export ROOT_DATABASE_URL="postgresql://orange:\$SUPERUSER_PASSWORD@\$PGHOST/orange"
@@ -82,8 +84,7 @@ export JSON_SCHEMA_PATH="schemas/schema.graphql.json"
 export SQL_SCHEMA_PATH="./schemas/schema.sql"
 
 # Postgraphile introspection cache, use for improve startup time
-export PG_CACHE_PATH="./postgraphile.cache
-"
+export PG_CACHE_PATH="./postgraphile.cache"
 CONFIG
   echo "Passwords generated and configuration written to .env-config"
 
@@ -91,6 +92,16 @@ CONFIG
   chmod +x .env-config
 
   . ./.env-config
+
+  # This is our 'db.env' postgres env file.
+  cat >> db.env <<CONFIG
+PGUSER=$PGUSER
+POSTGRES_PASSWORD=$SUPERUSER_PASSWORD
+CONFIG
+  echo "Postgres passwords was writed to db.env"
+
+  # To source our .env file from the shell it has to be executable.
+  chmod +x db.env
 fi
 
 

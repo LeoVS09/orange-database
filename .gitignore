@@ -59,6 +59,7 @@ typings/
 .env
 .env-config
 .env-list
+*.env
 
 # PostGraphile introspection cache
 postgraphile.cache
