@@ -15,8 +15,15 @@ DOCKER_IMAGE_TAG=leovs09/orange-database:$(DOCKER_IMAGE_VERSION)
 # SETUP
 # ---------------------------------------------------------------------------------------------------------------------
 
+SETUP_COMMAND = ./bin/setup.sh
+
+# This will detect OS and define setup command
+ifeq ($(OS),Windows_NT)
+	SETUP_COMMAND = make docker-base-linux-setup
+endif
+
 setup:
-	./bin/setup.sh
+	$(SETUP_COMMAND)
 
 # ---------------------------------------------------------------------------------------------------------------------
 # UTILS
@@ -67,6 +74,12 @@ dump-graphql:
 # ---------------------------------------------------------------------------------------------------------------------
 # DOCKER
 # ---------------------------------------------------------------------------------------------------------------------
+
+docker-base-linux-console:
+	docker run -it -v ${CURDIR}:/data -w /data leovs09/debian-bash-make bash 
+
+docker-base-linux-setup:
+	docker run -it -v ${CURDIR}:/data -w /data leovs09/debian-bash-make make setup
 
 docker-build-and-push:
 	echo "Build and push $(DOCKER_IMAGE_TAG)"
