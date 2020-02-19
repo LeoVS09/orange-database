@@ -11,7 +11,7 @@ services:
       volumes:
          - .:/ws/.
       env_file:
-         - .env-list
+         - ./.env-list
       depends_on:
         - db
 #        - redis

@@ -3,6 +3,7 @@
 .PHONY: all build start clean production start-dev dump-schema dump-graphql setup dev docker-build docker-console build-console
 
 export NODE_ENV=development
+export COMPOSE_ENV_FILE='.env-list'
 
 # ---------------------------------------------------------------------------------------------------------------------
 # CONFIG
@@ -88,3 +89,4 @@ db-up:
 
 docker-up:
 	docker-compose up
+

@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 let read = new Promise((resolve, reject) => {
-	fs.readFile(path.resolve(__dirname, '../.env'), 'utf8', (err, data)=> {
+	fs.readFile(path.resolve(__dirname, '../.env-config'), 'utf8', (err, data)=> {
 		if(err) {
 			reject(err);
 			return

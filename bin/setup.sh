@@ -2,14 +2,14 @@
 set -e
 export NODE_ENV=development
 
-if [ -x .env ]; then
-  . ./.env
+if [ -x .env-config ]; then
+  . ./.env-config
   if [ "$SUPERUSER_PASSWORD" = "" ]; then
-    echo ".env already exists, but it doesn't define SUPERUSER_PASSWORD - aborting!"
+    echo ".env-config already exists, but it doesn't define SUPERUSER_PASSWORD - aborting!"
     exit 1;
   fi
   if [ "$AUTH_USER_PASSWORD" = "" ]; then
-    echo ".env already exists, but it doesn't define AUTH_USER_PASSWORD - aborting!"
+    echo ".env-config already exists, but it doesn't define AUTH_USER_PASSWORD - aborting!"
     exit 1;
   fi
   echo "Configuration already exists, using existing secrets."
@@ -18,8 +18,8 @@ else
   SUPERUSER_PASSWORD="$(openssl rand -base64 30 | tr '+/' '-_')"
   AUTH_USER_PASSWORD="$(openssl rand -base64 30 | tr '+/' '-_')"
 
-  # This is our '.env' config file, we're writing it now so that if something goes wrong we won't lose the passwords.
-  cat >> .env <<CONFIG
+  # This is our '.env-config' config file, we're writing it now so that if something goes wrong we won't lose the passwords.
+  cat >> .env-config <<CONFIG
 # This is a development environment (production wouldn't write envvars to a file)
 export NODE_ENV="development"
 
@@ -82,14 +82,15 @@ export JSON_SCHEMA_PATH="schemas/schema.graphql.json"
 export SQL_SCHEMA_PATH="./schemas/schema.sql"
 
 # Postgraphile introspection cache, use for improve startup time
-export PG_CACHE_PATH="./postgraphile.cache"
+export PG_CACHE_PATH="./postgraphile.cache
+"
 CONFIG
-  echo "Passwords generated and configuration written to .env"
+  echo "Passwords generated and configuration written to .env-config"
 
   # To source our .env file from the shell it has to be executable.
-  chmod +x .env
+  chmod +x .env-config
 
-  . ./.env
+  . ./.env-config
 fi
 
 

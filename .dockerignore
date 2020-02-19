@@ -8,4 +8,5 @@ dist/
 
 # dotenv environment variables file
 .env
+.env-config
 .env-list

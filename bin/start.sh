@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-if [ -x ./.env ]; then
-  . ./.env;
+if [ -x ./.env-config ]; then
+  . ./.env-config;
 fi;
 
 export NODE_ENV=production

@@ -2,7 +2,7 @@
 
 set -e
 
-. ./.env
+. ./.env-config
 
 echo "Dumping full SQL schema to ${SQL_SCHEMA_PATH}"
 
