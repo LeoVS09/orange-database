@@ -2,8 +2,6 @@
 
 set -e
 
-. ./.env-config
-
 echo "Dumping full SQL schema to ${SQL_SCHEMA_PATH}"
 
 # There's no easy way to exclude postgraphile_watch from the dump, so we drop and and restore it at the end

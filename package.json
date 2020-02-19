@@ -4,8 +4,13 @@
    "description": "Database for Orange, based on PostgreSQL and GraphQL",
    "main": "index.js",
    "scripts": {
-      "build": "babel ./src -d ./build --extensions \".ts\" --source-maps",
-      "production": "babel ./src -d ./build --extensions \".ts\"",
+      "dev": "yarn build && yarn start:dev",
+      "production": "yarn clean && yarn build:production",
+      "build": "NODE_ENV=development babel ./src -d ./build --extensions \".ts\" --source-maps",
+      "build:production": "NODE_ENV=production babel ./src -d ./build --extensions \".ts\"",
+      "start": "NODE_ENV=production node ./build/index.js",
+      "start:dev": "NODE_ENV=development yarn watch & yarn nodemon:start",
+      "clean": "rm -rf build",
       "watch": "babel ./src --watch -d ./build --extensions \".ts\" --source-maps ",
       "nodemon:start": "nodemon ./build/index.js"
    },

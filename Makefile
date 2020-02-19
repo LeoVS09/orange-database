@@ -25,15 +25,16 @@ endif
 setup:
 	$(SETUP_COMMAND)
 
+# setup database with .sql scripts in ./database folder
+setup-db:
+	./bin/setup-db.sh
+
 # ---------------------------------------------------------------------------------------------------------------------
 # UTILS
 # ---------------------------------------------------------------------------------------------------------------------
 
 clean:
-	rm -rf build
-
-env-to-list:
-	node bin/env-to-list.js
+	yarn clean
 
 # ---------------------------------------------------------------------------------------------------------------------
 # DEVELOPMENT
@@ -43,10 +44,12 @@ build: clean
 	yarn build
 
 start-dev:
-	./bin/start-dev.sh
+	echo "Will start server in development mode"
+	yarn start:dev
 
-dev: build
-	make watch & make start-dev
+dev:
+	echo "Will prepare for development and start server"
+	yarn dev
 
 watch:
 	yarn watch
@@ -55,11 +58,14 @@ watch:
 # PRODUCTION
 # ---------------------------------------------------------------------------------------------------------------------
 
-production: clean
+# Build for production
+production:
+	echo "Will build for production"
 	yarn production
 
 start:
-	./bin/start.sh
+	echo "Will start server in production mode"
+	yarn start
 
 # ---------------------------------------------------------------------------------------------------------------------
 # DUMP
@@ -90,7 +96,7 @@ docker-build-and-push:
 docker-build:
 	@docker build -t $(DOCKER_IMAGE_TAG) .
 
-docker-console: env-to-list
+docker-console:
 	docker-compose run --publish=8765:8765 orange-database  /bin/bash
 
 console: docker-console
