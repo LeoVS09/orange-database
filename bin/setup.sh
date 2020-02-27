@@ -99,17 +99,6 @@ SQL_SCHEMA_PATH=./schemas/schema.sql
 # Postgraphile introspection cache, use for improve startup time
 PG_CACHE_PATH=./postgraphile.cache
 
-# Admin panel variables (Forest Admin)
-# https://docs.forestadmin.com/documentation/getting-started/installation
-DATABASE_SCHEMA=public
-DATABASE_URL=postgresql://$APP_NAME:$SUPERUSER_PASSWORD@$PGHOST/$APP_DATABASE
-DATABASE_SSL=false
-APP_NAME=$APP_NAME
-FOREST_EMAIL=
-FOREST_TOKEN=
-APPLICATION_HOST=localhost
-APPLICATION_PORT=3310
-
 CONFIG
   echo "Passwords generated and configuration written to .env"
 
@@ -118,6 +107,21 @@ CONFIG
 
   . ./.env
 
+  cat >> .env.admin <<CONFIG
+# Admin panel variables (Forest Admin)
+# https://docs.forestadmin.com/documentation/getting-started/installation
+DATABASE_SCHEMA=app_public
+DATABASE_URL=postgresql://$APP_NAME:$SUPERUSER_PASSWORD@$PGHOST/$APP_DATABASE
+DATABASE_SSL=false
+APP_NAME=$APP_NAME
+FOREST_EMAIL=
+# you can get it from http://app.forestadmin.com/
+FOREST_TOKEN=
+APPLICATION_HOST=localhost
+APPLICATION_PORT=3310
+CONFIG
+
+  echo "Forest admin configuration was written to .env.admin"
 fi
 
 # All done

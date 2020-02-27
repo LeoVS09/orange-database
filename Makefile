@@ -8,7 +8,7 @@ export COMPOSE_ENV_FILE='.env-list'
 # ---------------------------------------------------------------------------------------------------------------------
 # CONFIG
 # ---------------------------------------------------------------------------------------------------------------------
-DOCKER_IMAGE_VERSION=0.1.2
+DOCKER_IMAGE_VERSION=0.1.3
 DOCKER_IMAGE_TAG=leovs09/orange-database:$(DOCKER_IMAGE_VERSION)
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -105,6 +105,12 @@ build-console: docker-build docker-console
 
 db-up:
 	docker-compose up db
+
+admin-up:
+	docker-compose up --no-recreate admin
+
+admin-up-detach:
+	docker-compose up --no-recreate -d admin
 
 docker-up:
 	docker-compose up

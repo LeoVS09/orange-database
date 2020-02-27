@@ -10,6 +10,8 @@ create table app_public.profiles (
 	middle_name text default '' check (char_length(middle_name) < 80),
 	last_name text default '' check (char_length(last_name) < 80),
 
+	name text generated always as (trim(both from (first_name || ' ' || middle_name)) || ' ' || last_name) stored,
+
 	phone text default '' check (char_length(phone) < 16),
 
 	group_number text default '' check (char_length(group_number) < 10),
@@ -30,15 +32,6 @@ create trigger _100_timestamps
   after insert or update on app_public.profiles
   for each row
   execute procedure app_private.tg__update_timestamps();
-
-------------------------------------------------------------------------------------------------------------------------
-
-create function app_public.profiles_full_name(p app_public.profiles)
-returns text as $$
-
-    select trim(both from (p.first_name || ' ' || p.middle_name)) || ' ' || p.last_name;
-
-$$ language sql stable;
 
 ------------------------------------------------------------------------------------------------------------------------
 
