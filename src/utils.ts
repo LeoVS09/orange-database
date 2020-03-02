@@ -26,7 +26,6 @@ export const installWatchFixtures = (rootPgPool: postgres.Pool) => {
   rootPgPool.query(fixtures).then(
     () => {
       console.log(`Loaded watch fixtures ✅`);
-      console.log(`Ignore the "Failed to setup watch fixtures" warning`);
     },
     e => {
       console.error("Failed to load watch fixtures 🔥");

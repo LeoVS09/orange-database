@@ -10,170 +10,170 @@
 -- URL: https://gist.github.com/benjie/839740697f5a1c46ee8da98a1efac218
 -- Donations: https://www.paypal.me/benjie
 
-CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA public;
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
+create extension if not exists pgcrypto with schema public;
+create extension if not exists "uuid-ossp" with schema public;
 
-CREATE SCHEMA IF NOT EXISTS app_jobs;
+create schema if not exists app_jobs;
 
-CREATE TABLE app_jobs.job_queues (
-  queue_name varchar NOT NULL PRIMARY KEY,
-  job_count int DEFAULT 0 NOT NULL,
+create table app_jobs.job_queues (
+  queue_name varchar not null primary key,
+  job_count int default 0 not null,
   locked_at timestamp with time zone,
   locked_by varchar
 );
-ALTER TABLE app_jobs.job_queues ENABLE ROW LEVEL SECURITY;
+alter table app_jobs.job_queues enable row level security;
 
-CREATE TABLE app_jobs.jobs (
-  id serial PRIMARY KEY,
-  queue_name varchar DEFAULT (public.gen_random_uuid())::varchar NOT NULL,
-  task_identifier varchar NOT NULL,
-  payload json DEFAULT '{}'::json NOT NULL,
-  priority int DEFAULT 0 NOT NULL,
-  run_at timestamp with time zone DEFAULT now() NOT NULL,
-  attempts int DEFAULT 0 NOT NULL,
+create table app_jobs.jobs (
+  id uuid primary key default uuid_generate_v1mc(),
+  queue_name varchar default (public.gen_random_uuid())::varchar not null,
+  task_identifier varchar not null,
+  payload json default '{}'::json not null,
+  priority int default 0 not null,
+  run_at timestamp with time zone default now() not null,
+  attempts int default 0 not null,
   last_error varchar,
-  created_at timestamp with time zone NOT NULL DEFAULT NOW(),
-  updated_at timestamp with time zone NOT NULL DEFAULT NOW()
+  created_at timestamp with time zone not null default now(),
+  updated_at timestamp with time zone not null default now()
 );
-ALTER TABLE app_jobs.job_queues ENABLE ROW LEVEL SECURITY;
+alter table app_jobs.job_queues enable row level security;
 
-CREATE FUNCTION app_jobs.do_notify() RETURNS trigger AS $$
-BEGIN
-  PERFORM pg_notify(TG_ARGV[0], '');
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
+create function app_jobs.do_notify() returns trigger as $$
+begin
+  perform pg_notify(tg_argv[0], '');
+  return new;
+end;
+$$ language plpgsql;
 
-CREATE FUNCTION app_jobs.update_timestamps() RETURNS trigger AS $$
-BEGIN
-  IF TG_OP = 'INSERT' THEN
-    NEW.created_at = NOW();
-    NEW.updated_at = NOW();
-  ELSIF TG_OP = 'UPDATE' THEN
-    NEW.created_at = OLD.created_at;
-    NEW.updated_at = GREATEST(NOW(), OLD.updated_at + INTERVAL '1 millisecond');
-  END IF;
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
+create function app_jobs.update_timestamps() returns trigger as $$
+begin
+  if tg_op = 'insert' then
+    new.created_at = now();
+    new.updated_at = now();
+  elsif tg_op = 'update' then
+    new.created_at = old.created_at;
+    new.updated_at = greatest(now(), old.updated_at + interval '1 millisecond');
+  end if;
+  return new;
+end;
+$$ language plpgsql;
 
-CREATE FUNCTION app_jobs.jobs__decrease_job_queue_count() RETURNS trigger AS $$
-BEGIN
-  UPDATE app_jobs.job_queues
-    SET job_count = job_queues.job_count - 1
-    WHERE queue_name = OLD.queue_name
-    AND job_queues.job_count > 1;
+create function app_jobs.jobs__decrease_job_queue_count() returns trigger as $$
+begin
+  update app_jobs.job_queues
+    set job_count = job_queues.job_count - 1
+    where queue_name = old.queue_name
+    and job_queues.job_count > 1;
 
-  IF NOT FOUND THEN
-    DELETE FROM app_jobs.job_queues WHERE queue_name = OLD.queue_name;
-  END IF;
+  if not found then
+    delete from app_jobs.job_queues where queue_name = old.queue_name;
+  end if;
 
-  RETURN OLD;
-END;
-$$ LANGUAGE plpgsql;
+  return old;
+end;
+$$ language plpgsql;
 
-CREATE FUNCTION app_jobs.jobs__increase_job_queue_count() RETURNS trigger AS $$
-BEGIN
-  INSERT INTO app_jobs.job_queues(queue_name, job_count)
-    VALUES(NEW.queue_name, 1)
-    ON CONFLICT (queue_name) DO UPDATE SET job_count = job_queues.job_count + 1;
+create function app_jobs.jobs__increase_job_queue_count() returns trigger as $$
+begin
+  insert into app_jobs.job_queues(queue_name, job_count)
+    values(new.queue_name, 1)
+    on conflict (queue_name) do update set job_count = job_queues.job_count + 1;
 
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
+  return new;
+end;
+$$ language plpgsql;
 
-CREATE TRIGGER _100_timestamps BEFORE INSERT OR UPDATE ON app_jobs.jobs FOR EACH ROW EXECUTE PROCEDURE app_jobs.update_timestamps();
-CREATE TRIGGER _500_increase_job_queue_count AFTER INSERT ON app_jobs.jobs FOR EACH ROW EXECUTE PROCEDURE app_jobs.jobs__increase_job_queue_count();
-CREATE TRIGGER _500_decrease_job_queue_count BEFORE DELETE ON app_jobs.jobs FOR EACH ROW EXECUTE PROCEDURE app_jobs.jobs__decrease_job_queue_count();
-CREATE TRIGGER _900_notify_worker AFTER INSERT ON app_jobs.jobs FOR EACH STATEMENT EXECUTE PROCEDURE app_jobs.do_notify('jobs:insert');
+create trigger _100_timestamps before insert or update on app_jobs.jobs for each row execute procedure app_jobs.update_timestamps();
+create trigger _500_increase_job_queue_count after insert on app_jobs.jobs for each row execute procedure app_jobs.jobs__increase_job_queue_count();
+create trigger _500_decrease_job_queue_count before delete on app_jobs.jobs for each row execute procedure app_jobs.jobs__decrease_job_queue_count();
+create trigger _900_notify_worker after insert on app_jobs.jobs for each statement execute procedure app_jobs.do_notify('jobs:insert');
 
-CREATE FUNCTION app_jobs.add_job(identifier varchar, payload json) RETURNS app_jobs.jobs AS $$
-  INSERT INTO app_jobs.jobs(task_identifier, payload) VALUES(identifier, payload) RETURNING *;
-$$ LANGUAGE sql;
+create function app_jobs.add_job(identifier varchar, payload json) returns app_jobs.jobs as $$
+  insert into app_jobs.jobs(task_identifier, payload) values(identifier, payload) returning *;
+$$ language sql;
 
-CREATE FUNCTION app_jobs.add_job(identifier varchar, queue_name varchar, payload json) RETURNS app_jobs.jobs AS $$
-  INSERT INTO app_jobs.jobs(task_identifier, queue_name, payload) VALUES(identifier, queue_name, payload) RETURNING *;
-$$ LANGUAGE sql;
+create function app_jobs.add_job(identifier varchar, queue_name varchar, payload json) returns app_jobs.jobs as $$
+  insert into app_jobs.jobs(task_identifier, queue_name, payload) values(identifier, queue_name, payload) returning *;
+$$ language sql;
 
-CREATE FUNCTION app_jobs.schedule_job(identifier varchar, queue_name varchar, payload json, run_at timestamptz) RETURNS app_jobs.jobs AS $$
-  INSERT INTO app_jobs.jobs(task_identifier, queue_name, payload, run_at) VALUES(identifier, queue_name, payload, run_at) RETURNING *;
-$$ LANGUAGE sql;
+create function app_jobs.schedule_job(identifier varchar, queue_name varchar, payload json, run_at timestamptz) returns app_jobs.jobs as $$
+  insert into app_jobs.jobs(task_identifier, queue_name, payload, run_at) values(identifier, queue_name, payload, run_at) returning *;
+$$ language sql;
 
-CREATE FUNCTION app_jobs.complete_job(worker_id varchar, job_id int) RETURNS app_jobs.jobs AS $$
-DECLARE
+create function app_jobs.complete_job(worker_id varchar, job_id uuid) returns app_jobs.jobs as $$
+declare
   v_row app_jobs.jobs;
-BEGIN
-  DELETE FROM app_jobs.jobs
-    WHERE id = job_id
-    RETURNING * INTO v_row;
+begin
+  delete from app_jobs.jobs
+    where id = job_id
+    returning * into v_row;
 
-  UPDATE app_jobs.job_queues
-    SET locked_by = null, locked_at = null
-    WHERE queue_name = v_row.queue_name AND locked_by = worker_id;
+  update app_jobs.job_queues
+    set locked_by = null, locked_at = null
+    where queue_name = v_row.queue_name and locked_by = worker_id;
 
-  RETURN v_row;
-END;
-$$ LANGUAGE plpgsql;
+  return v_row;
+end;
+$$ language plpgsql;
 
-CREATE FUNCTION app_jobs.fail_job(worker_id varchar, job_id int, error_message varchar) RETURNS app_jobs.jobs AS $$
-DECLARE
+create function app_jobs.fail_job(worker_id varchar, job_id uuid, error_message varchar) returns app_jobs.jobs as $$
+declare
   v_row app_jobs.jobs;
-BEGIN
-  UPDATE app_jobs.jobs
-    SET
+begin
+  update app_jobs.jobs
+    set
       last_error = error_message,
       run_at = greatest(now(), run_at) + (exp(least(attempts, 10))::text || ' seconds')::interval
-    WHERE id = job_id
-    RETURNING * INTO v_row;
+    where id = job_id
+    returning * into v_row;
 
-  UPDATE app_jobs.job_queues
-    SET locked_by = null, locked_at = null
-    WHERE queue_name = v_row.queue_name AND locked_by = worker_id;
+  update app_jobs.job_queues
+    set locked_by = null, locked_at = null
+    where queue_name = v_row.queue_name and locked_by = worker_id;
 
-  RETURN v_row;
-END;
-$$ LANGUAGE plpgsql;
+  return v_row;
+end;
+$$ language plpgsql;
 
-CREATE FUNCTION app_jobs.get_job(worker_id varchar, identifiers varchar[]) RETURNS app_jobs.jobs AS $$
-DECLARE
-  v_job_id int;
+create function app_jobs.get_job(worker_id varchar, identifiers varchar[]) returns app_jobs.jobs as $$
+declare
+  v_job_id uuid;
   v_queue_name varchar;
   v_default_job_expiry text = (4 * 60 * 60)::text;
   v_default_job_maximum_attempts text = '25';
   v_row app_jobs.jobs;
-BEGIN
-  IF worker_id IS NULL OR length(worker_id) < 10 THEN
-    RAISE EXCEPTION 'Invalid worker ID';
-  END IF;
+begin
+  if worker_id is null or length(worker_id) < 10 then
+    raise exception 'invalid worker id';
+  end if;
 
-  SELECT job_queues.queue_name, jobs.id INTO v_queue_name, v_job_id
-    FROM app_jobs.job_queues
-    INNER JOIN app_jobs.jobs USING (queue_name)
-    WHERE (locked_at IS NULL OR locked_at < (now() - (COALESCE(current_setting('jobs.expiry', true), v_default_job_expiry) || ' seconds')::interval))
-    AND run_at <= now()
-    AND attempts < COALESCE(current_setting('jobs.maximum_attempts', true), v_default_job_maximum_attempts)::int
-    AND (identifiers IS NULL OR task_identifier = any(identifiers))
-    ORDER BY priority ASC, run_at ASC, id ASC
-    LIMIT 1
-    FOR UPDATE SKIP LOCKED;
+  select job_queues.queue_name, jobs.id into v_queue_name, v_job_id
+    from app_jobs.job_queues
+    inner join app_jobs.jobs using (queue_name)
+    where (locked_at is null or locked_at < (now() - (coalesce(current_setting('jobs.expiry', true), v_default_job_expiry) || ' seconds')::interval))
+    and run_at <= now()
+    and attempts < coalesce(current_setting('jobs.maximum_attempts', true), v_default_job_maximum_attempts)::int
+    and (identifiers is null or task_identifier = any(identifiers))
+    order by priority asc, run_at asc, id asc
+    limit 1
+    for update skip locked;
 
-  IF v_queue_name IS NULL THEN
-    RETURN NULL;
-  END IF;
+  if v_queue_name is null then
+    return null;
+  end if;
 
-  UPDATE app_jobs.job_queues
-    SET
+  update app_jobs.job_queues
+    set
       locked_by = worker_id,
       locked_at = now()
-    WHERE job_queues.queue_name = v_queue_name;
+    where job_queues.queue_name = v_queue_name;
 
-  UPDATE app_jobs.jobs
-    SET attempts = attempts + 1
-    WHERE id = v_job_id
-    RETURNING * INTO v_row;
+  update app_jobs.jobs
+    set attempts = attempts + 1
+    where id = v_job_id
+    returning * into v_row;
 
-  RETURN v_row;
-END;
-$$ LANGUAGE plpgsql;
+  return v_row;
+end;
+$$ language plpgsql;
 
--- END: JOBS
+-- end: jobs

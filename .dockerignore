@@ -1,0 +1,13 @@
+.idea/
+
+.git/
+.gitignore
+
+node_modules/
+dist/
+
+# dotenv environment variables file
+.env
+.env-config
+.env-list
+.env.admin

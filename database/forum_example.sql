@@ -1,4 +1,8 @@
--- Forum example
+-- Simple forum example
+-- Not needed for current application,
+-- but left here because can be used as postgresql syntax starting point for new developers
+
+create extension if not exists "uuid-ossp" with schema public;
 
 create table app_public.forums (
   id serial primary key,
@@ -27,17 +31,17 @@ create policy select_all on app_public.forums for select using (true);
 create policy insert_admin on app_public.forums for insert with check (app_public.current_user_is_admin());
 create policy update_admin on app_public.forums for update using (app_public.current_user_is_admin());
 create policy delete_admin on app_public.forums for delete using (app_public.current_user_is_admin());
-grant select on app_public.forums to graphiledemo_visitor;
-grant insert(slug, name, description) on app_public.forums to graphiledemo_visitor;
-grant update(slug, name, description) on app_public.forums to graphiledemo_visitor;
-grant delete on app_public.forums to graphiledemo_visitor;
+grant select on app_public.forums to orange_visitor;
+grant insert(slug, name, description) on app_public.forums to orange_visitor;
+grant update(slug, name, description) on app_public.forums to orange_visitor;
+grant delete on app_public.forums to orange_visitor;
 
 --------------------------------------------------------------------------------
 
 create table app_public.topics (
   id serial primary key,
   forum_id int not null references app_public.forums on delete cascade,
-  author_id int not null default app_public.current_user_id() references app_public.users on delete cascade,
+  author_id uuid not null default app_public.current_user_id() references app_public.users on delete cascade,
   title text not null check(length(title) > 0),
   body text not null default '',
   created_at timestamptz not null default now(),
@@ -60,10 +64,10 @@ create policy select_all on app_public.topics for select using (true);
 create policy insert_admin on app_public.topics for insert with check (author_id = app_public.current_user_id());
 create policy update_admin on app_public.topics for update using (author_id = app_public.current_user_id() or app_public.current_user_is_admin());
 create policy delete_admin on app_public.topics for delete using (author_id = app_public.current_user_id() or app_public.current_user_is_admin());
-grant select on app_public.topics to graphiledemo_visitor;
-grant insert(forum_id, title, body) on app_public.topics to graphiledemo_visitor;
-grant update(title, body) on app_public.topics to graphiledemo_visitor;
-grant delete on app_public.topics to graphiledemo_visitor;
+grant select on app_public.topics to orange_visitor;
+grant insert(forum_id, title, body) on app_public.topics to orange_visitor;
+grant update(title, body) on app_public.topics to orange_visitor;
+grant delete on app_public.topics to orange_visitor;
 
 create function app_public.topics_body_summary(
   t app_public.topics,
@@ -86,7 +90,7 @@ $$;
 create table app_public.posts (
   id serial primary key,
   topic_id int not null references app_public.topics on delete cascade,
-  author_id int not null default app_public.current_user_id() references app_public.users on delete cascade,
+  author_id uuid not null default app_public.current_user_id() references app_public.users on delete cascade,
   body text not null default '',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -116,10 +120,10 @@ create policy select_all on app_public.posts for select using (true);
 create policy insert_admin on app_public.posts for insert with check (author_id = app_public.current_user_id());
 create policy update_admin on app_public.posts for update using (author_id = app_public.current_user_id() or app_public.current_user_is_admin());
 create policy delete_admin on app_public.posts for delete using (author_id = app_public.current_user_id() or app_public.current_user_is_admin());
-grant select on app_public.posts to graphiledemo_visitor;
-grant insert(topic_id, body) on app_public.posts to graphiledemo_visitor;
-grant update(body) on app_public.posts to graphiledemo_visitor;
-grant delete on app_public.posts to graphiledemo_visitor;
+grant select on app_public.posts to orange_visitor;
+grant insert(topic_id, body) on app_public.posts to orange_visitor;
+grant update(body) on app_public.posts to orange_visitor;
+grant delete on app_public.posts to orange_visitor;
 
 
 create function app_public.random_number() returns int

@@ -31,6 +31,7 @@ bower_components
 
 # Compiled binary code
 dist/
+build/
 
 # Dependency directories
 node_modules/
@@ -56,6 +57,12 @@ typings/
 
 # dotenv environment variables file
 .env
+.env-config
+.env-list
+*.env*
+
+# PostGraphile introspection cache
+postgraphile.cache
 
 # next.js build output
 .next

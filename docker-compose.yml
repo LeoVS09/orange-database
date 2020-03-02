@@ -1,0 +1,51 @@
+version: "3"
+
+services:
+
+   orange-database:
+      image: leovs09/orange-database:0.1.3
+      container_name: orange-database
+      user: root
+      ports:
+         - 8765:8765
+      volumes:
+         - .:/ws/.
+      env_file:
+         - ./.env
+      depends_on:
+        - db
+#        - redis
+      links:
+        - db
+#        - redis
+
+   db:
+      image: postgres:12
+      container_name: postgres
+      ports:
+         - 5432:5432
+      env_file:
+         - ./.env
+
+   admin:
+      image: leovs09/lumber
+      container_name: admin
+      ports:
+         - 3310:3310
+      env_file:
+         - ./.env.admin
+      depends_on:
+         - db
+      links:
+         - db
+      volumes:
+         - admin-backend:/usr/src/app
+
+#   redis:
+#      image: redis:5.0.4
+#      container_name: redis
+#      ports:
+#         - 16379:6379
+
+volumes:
+  admin-backend:

@@ -1,8 +1,8 @@
 import Koa from 'koa'
 
 import installPostGraphile from './postGraphile'
-import installPassport from './passport'
-import installSession from './session'
+import installPassport from './authentication/passport'
+import installSession from './authentication/session'
 import installStandardKoaMiddleware from './standartKoa'
 import postgres from "pg";
 

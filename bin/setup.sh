@@ -17,57 +17,88 @@ else
   # This will generate passwords that are safe to use in envvars without needing to be escaped:
   SUPERUSER_PASSWORD="$(openssl rand -base64 30 | tr '+/' '-_')"
   AUTH_USER_PASSWORD="$(openssl rand -base64 30 | tr '+/' '-_')"
+  
+  # This is template values for enviroment
+  PGUSER="postgres"
+  PGHOST="db"
+  APP_NAME="orange"
+  APP_DATABASE="orange"
+  APP_VISITOR_NAME="orange_authenticator"
+  APP_TEST_DATABASE="orange_test"
+  PORT="8765"
+  ROOT_DOMAIN="localhost:$PORT"
+  
 
   # This is our '.env' config file, we're writing it now so that if something goes wrong we won't lose the passwords.
   cat >> .env <<CONFIG
+# This dotenv file in format readable for docker https://docs.docker.com/compose/env-file/
+# IMPORTANT: docker dotenv not fully support dotenv format!
+
 # This is a development environment (production wouldn't write envvars to a file)
-export NODE_ENV="development"
+NODE_ENV=development
 
-# Password for the 'graphiledemo' user, which owns the database
-export SUPERUSER_PASSWORD="$SUPERUSER_PASSWORD"
+# Password for the '$APP_NAME' user, which owns the database
+SUPERUSER_PASSWORD=$SUPERUSER_PASSWORD
 
-# Password for the 'graphiledemo_authenticator' user, which has very limited
-# privileges, but can switch into graphiledemo_visitor
-export AUTH_USER_PASSWORD="$AUTH_USER_PASSWORD"
+# Password for the '$APP_VISITOR_NAME' user, which has very limited
+# privileges, but can switch into orange_visitor
+AUTH_USER_PASSWORD=$AUTH_USER_PASSWORD
 
 # This secret is used for signing cookies
-export SECRET="$(openssl rand -base64 48)"
+SECRET=$(openssl rand -base64 48)
 
 # This secret is used for signing JWT tokens (we don't use this by default)
-export JWT_SECRET="$(openssl rand -base64 48)"
+JWT_SECRET=$(openssl rand -base64 48)
 
+# Used by psql tool for default connect to database
+PGHOST=$PGHOST
+PGUSER=$PGUSER
+PGPASSWORD=$SUPERUSER_PASSWORD
+POSTGRES_PASSWORD=$SUPERUSER_PASSWORD
 
 # These are the connection strings for the DB and the test DB.
-export ROOT_DATABASE_URL="postgresql://graphiledemo:\$SUPERUSER_PASSWORD@localhost/graphiledemo"
-export AUTH_DATABASE_URL="postgresql://graphiledemo_authenticator:\$AUTH_USER_PASSWORD@localhost/graphiledemo"
-export TEST_ROOT_DATABASE_URL="postgresql://graphiledemo:\$SUPERUSER_PASSWORD@localhost/graphiledemo_test"
-export TEST_AUTH_DATABASE_URL="postgresql://graphiledemo_authenticator:\$AUTH_USER_PASSWORD@localhost/graphiledemo_test"
+ROOT_DATABASE_URL=postgresql://$APP_NAME:$SUPERUSER_PASSWORD@$PGHOST/$APP_DATABASE
+AUTH_DATABASE_URL=postgresql://$APP_VISITOR_NAME:$AUTH_USER_PASSWORD@$PGHOST/$APP_DATABASE
+TEST_ROOT_DATABASE_URL=postgresql://$APP_NAME:$SUPERUSER_PASSWORD@$PGHOST/$APP_TEST_DATABASE
+TEST_AUTH_DATABASE_URL=postgresql://$APP_VISITOR_NAME:$AUTH_USER_PASSWORD@$PGHOST/$APP_TEST_DATABASE
 
 # This port is the one you'll connect to
-export PORT=8349
-
-# This is the port that create-react-app runs as, don't connect to it directly
-export CLIENT_PORT=8350
+PORT=$PORT
 
 # This is needed any time we use absolute URLs, e.g. for OAuth callback URLs
-export ROOT_DOMAIN="localhost:\$PORT"
-export ROOT_URL="http://\$ROOT_DOMAIN"
+ROOT_DOMAIN=$ROOT_DOMAIN
+ROOT_URL=http://$ROOT_DOMAIN
 
 # Our session store uses redis
-export REDIS_URL="redis://localhost/3"
+REDIS_URL=redis://localhost/3
+
+# Admin identification data
+ADMIN_LOGIN=admin
+# USED only because database user must have email
+ADMIN_EMAIL=admin@admin.com
+ADMIN_PASSWORD=$SUPERUSER_PASSWORD
 
 # Create a GitHub application, by visiting
 # https://github.com/settings/applications/new and then enter the Client
 # ID/Secret below
 #
-#   Name: GraphileDemo
-#   Homepage URL: http://localhost:8349
+#   Name: $APP_NAME
+#   Homepage URL: http://localhost:8765
 #   Authorization callback URL: http://localhost:8349/auth/github/callback
 #
 # Client ID:
-export GITHUB_KEY=""
+GITHUB_KEY=
 # Client Secret:
-export GITHUB_SECRET=""
+GITHUB_SECRET=
+
+# Export schemas pathes
+GRAPHQL_SCHEMA_PATH=schemas/schema.graphql
+JSON_SCHEMA_PATH=schemas/schema.graphql.json
+SQL_SCHEMA_PATH=./schemas/schema.sql
+
+# Postgraphile introspection cache, use for improve startup time
+PG_CACHE_PATH=./postgraphile.cache
+
 CONFIG
   echo "Passwords generated and configuration written to .env"
 
@@ -75,72 +106,23 @@ CONFIG
   chmod +x .env
 
   . ./.env
+
+  cat >> .env.admin <<CONFIG
+# Admin panel variables (Forest Admin)
+# https://docs.forestadmin.com/documentation/getting-started/installation
+DATABASE_SCHEMA=app_public
+DATABASE_URL=postgresql://$APP_NAME:$SUPERUSER_PASSWORD@$PGHOST/$APP_DATABASE
+DATABASE_SSL=false
+APP_NAME=$APP_NAME
+FOREST_EMAIL=
+# you can get it from http://app.forestadmin.com/
+FOREST_TOKEN=
+APPLICATION_HOST=localhost
+APPLICATION_PORT=3310
+CONFIG
+
+  echo "Forest admin configuration was written to .env.admin"
 fi
-
-
-echo "Installing or reinstalling the roles and database..."
-# Now we can reset the database
-psql -X -v ON_ERROR_STOP=1 template1 <<SQL
--- RESET database
-DROP DATABASE IF EXISTS graphiledemo;
-DROP DATABASE IF EXISTS graphiledemo_test;
-DROP DATABASE IF EXISTS graphile_org_demo;
-DROP ROLE IF EXISTS graphiledemo_visitor;
-DROP ROLE IF EXISTS graphiledemo_admin;
-DROP ROLE IF EXISTS graphiledemo_authenticator;
-DROP ROLE IF EXISTS graphiledemo;
-
--- Now to set up the database cleanly:
-
--- Ref: https://devcenter.heroku.com/articles/heroku-postgresql#connection-permissions
-
--- This is the root role for the database
-CREATE ROLE graphiledemo WITH LOGIN PASSWORD '${SUPERUSER_PASSWORD}' SUPERUSER;
-
--- This is the no-access role that PostGraphile will run as by default
-CREATE ROLE graphiledemo_authenticator WITH LOGIN PASSWORD '${AUTH_USER_PASSWORD}' NOINHERIT;
-
--- This is the role that PostGraphile will switch to (from graphiledemo_authenticator) during a transaction
-CREATE ROLE graphiledemo_visitor;
-
--- This enables PostGraphile to switch from graphiledemo_authenticator to graphiledemo_visitor
-GRANT graphiledemo_visitor TO graphiledemo_authenticator;
-
--- Here's our main database
-CREATE DATABASE graphiledemo OWNER graphiledemo;
-REVOKE ALL ON DATABASE graphiledemo FROM PUBLIC;
-GRANT CONNECT ON DATABASE graphiledemo TO graphiledemo;
-GRANT CONNECT ON DATABASE graphiledemo TO graphiledemo_authenticator;
-GRANT ALL ON DATABASE graphiledemo TO graphiledemo;
-
--- Some extensions require superuser privileges, so we create them before migration time.
-\\connect graphiledemo
-CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
-CREATE EXTENSION IF NOT EXISTS citext;
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
-
--- This is a copy of the setup above for our test database
-CREATE DATABASE graphiledemo_test OWNER graphiledemo;
-REVOKE ALL ON DATABASE graphiledemo_test FROM PUBLIC;
-GRANT CONNECT ON DATABASE graphiledemo_test TO graphiledemo;
-GRANT CONNECT ON DATABASE graphiledemo_test TO graphiledemo_authenticator;
-GRANT ALL ON DATABASE graphiledemo_test TO graphiledemo;
-\\connect graphiledemo_test
-CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
-CREATE EXTENSION IF NOT EXISTS citext;
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
-SQL
-
-echo "Roles and databases created, now sourcing the initial database schema"
-psql -X1 -v ON_ERROR_STOP=1 "${ROOT_DATABASE_URL}" -f database/reset.sql
-
-echo "Dumping full SQL schema to data/schema.sql"
-./bin/dump-schema.sh
-
-echo "Exporting GraphQL schema to data/schema.graphql and data/schema.json"
-yarn postgraphile -X -c "${ROOT_DATABASE_URL}" -s "app_public,app_private" --export-schema-graphql data/schema.graphql --export-schema-json data/schema.json
 
 # All done
 echo "✅ Setup success"
