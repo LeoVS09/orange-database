@@ -1,0 +1,21 @@
+version: 2
+updates:
+- package-ecosystem: npm
+  directory: "/"
+  schedule:
+    interval: monthly
+    time: "02:00"
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: typescript
+    versions:
+    - 4.1.3
+  - dependency-name: "@babel/register"
+    versions:
+    - 7.12.10
+  - dependency-name: graphile-utils
+    versions:
+    - 4.10.0
+  - dependency-name: "@babel/plugin-proposal-export-namespace-from"
+    versions:
+    - 7.12.1
