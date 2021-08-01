@@ -867,11 +867,12 @@
     "@types/koa" "*"
     path-to-regexp "^1.7.0"
 
-"@types/koa-session@^5.7.4":
-  version "5.7.4"
-  resolved "https://registry.yarnpkg.com/@types/koa-session/-/koa-session-5.7.4.tgz#39716bc04a76ae343e8772730dc871cb7cdebadf"
-  integrity sha512-SoNQKaoNs4dueGVmIOEPVHrvPp5ABszTZVh53OYufsrwF1fU+L5Dd/if9rJar7V0W86koBYeZeCs0uI4EuXMVg==
+"@types/koa-session@^5.10.4":
+  version "5.10.4"
+  resolved "https://registry.yarnpkg.com/@types/koa-session/-/koa-session-5.10.4.tgz#d5f97532f6ef27d5c4e1b04c3fd3ff447693bf10"
+  integrity sha512-Xz9RPq+2raVvw6UN1JzDVL9/s2qr9E5AZOiiQti328HNhEj6IqT5rcssFQPNxCzh9bNG6uqqGMsACr5bdjylXA==
   dependencies:
+    "@types/cookies" "*"
     "@types/koa" "*"
 
 "@types/koa@*", "@types/koa@^2.0.44", "@types/koa@^2.0.46":
